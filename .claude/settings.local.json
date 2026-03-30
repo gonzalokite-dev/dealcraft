@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --name proposr)",
+      "Read(//c/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/**)",
+      "Bash(npx create-next-app@latest proposr-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git)",
+      "Bash(printf \"n\\\\nn\\\\n\")",
+      "Bash(yes n:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(cp -r \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/proposr-temp/.\" \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/\")",
+      "Bash(rm -rf \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/proposr-temp\")",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:klevermail.com)",
+      "Bash(curl -s https://klevermail.com/)",
+      "Bash(curl -s 'https://klevermail.com/_next/static/css/2e141138901e99c0.css?dpl=dpl_BMfvHKpEWkbLdQtcLGJ6RUJMMRUt')",
+      "Bash(curl -s 'https://klevermail.com/_next/static/css/7e7d96b1e6991756.css?dpl=dpl_BMfvHKpEWkbLdQtcLGJ6RUJMMRUt')",
+      "Bash(curl -s 'https://klevermail.com/_next/static/css/4b069e0ec848cb10.css?dpl=dpl_BMfvHKpEWkbLdQtcLGJ6RUJMMRUt')",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(auth\\)/\")",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(app\\)/\")",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const pkg = require\\(''./node_modules/@supabase/ssr/package.json''\\); console.log\\(''ssr version:'', pkg.version\\);\")",
+      "Bash(node -e \"const pkg = require\\(''./node_modules/@supabase/supabase-js/package.json''\\); console.log\\(''supabase-js version:'', pkg.version\\);\")",
+      "Bash(node -e \"const pkg = require\\(''./node_modules/next/package.json''\\); console.log\\(''next version:'', pkg.version\\);\")",
+      "Bash(node -e \":*)",
+      "Bash(xargs grep:*)",
+      "Bash(echo \"TSC EXIT: $?\")"
+    ]
+  }
+}
