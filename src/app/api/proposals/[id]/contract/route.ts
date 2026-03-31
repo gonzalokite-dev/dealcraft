@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { CONTRACT_TYPE_LABELS, PROPOSAL_TYPE_LABELS } from "@/lib/proposals/constants";
 
 export const maxDuration = 60;
@@ -52,7 +51,6 @@ export async function POST(
       compartida: "Los derechos de propiedad intelectual serán compartidos a partes iguales entre ambas partes.",
     };
 
-    // Build timeline/scope context from input data
     const scopeLines: string[] = [];
     if (input.project_duration)        scopeLines.push(`Duración: ${input.project_duration}`);
     if (input.contract_duration)       scopeLines.push(`Duración del contrato: ${input.contract_duration}`);
@@ -149,27 +147,15 @@ Devuelve ÚNICAMENTE el texto del contrato. Sin comentarios, sin markdown adicio
     const generated_content = completion.choices[0].message.content;
     if (!generated_content) throw new Error("La IA no devolvió contenido.");
 
-    const admin = createAdminClient();
-    const { data: contract, error: insertError } = await admin
-      .from("contracts")
-      .insert({
-        user_id: user.id,
-        client_name: proposal.client_name,
-        client_company: input.client_company || null,
-        client_email: input.client_email || null,
-        contract_type: contractType,
-        input_data: { ...input, provider_name, provider_nif, provider_address, ip_ownership, jurisdiction },
-        generated_content,
-      })
-      .select("id")
-      .single();
-
-    if (insertError) {
-      console.error("Supabase insert error:", insertError);
-      return NextResponse.json({ error: `Error al guardar el contrato: ${insertError.message}` }, { status: 500 });
-    }
-
-    return NextResponse.json({ contract_id: contract.id });
+    // Return content + metadata for the browser to save directly (same pattern as proposals)
+    return NextResponse.json({
+      generated_content,
+      contract_type: contractType,
+      client_name: proposal.client_name,
+      client_company: input.client_company || null,
+      client_email: input.client_email || null,
+      input_data: { ...input, provider_name, provider_nif, provider_address, ip_ownership, jurisdiction },
+    });
   } catch (err) {
     console.error("Contract from proposal error:", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al generar el contrato." }, { status: 500 });

@@ -284,6 +284,7 @@ export default function ProposalPage() {
   }) {
     setGeneratingContract(true);
     try {
+      // Step 1: generate contract text via API (OpenAI)
       const res = await fetch(`/api/proposals/${id}/contract`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -291,8 +292,30 @@ export default function ProposalPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
+
+      // Step 2: save to Supabase directly from browser (same pattern as proposals)
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autorizado.");
+
+      const { data: contract, error: insertError } = await supabase
+        .from("contracts")
+        .insert({
+          user_id: user.id,
+          client_name: json.client_name,
+          client_company: json.client_company,
+          client_email: json.client_email,
+          contract_type: json.contract_type,
+          input_data: json.input_data,
+          generated_content: json.generated_content,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) throw new Error(`Error al guardar: ${insertError.message}`);
+
       setShowContractModal(false);
-      router.push(`/contract/${json.contract_id}`);
+      router.push(`/contract/${contract.id}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Error al generar el contrato.");
       setGeneratingContract(false);
