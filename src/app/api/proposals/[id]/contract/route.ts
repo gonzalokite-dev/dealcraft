@@ -160,11 +160,14 @@ Devuelve ÚNICAMENTE el texto del contrato. Sin comentarios, sin markdown adicio
       .select("id")
       .single();
 
-    if (insertError) throw new Error("Error al guardar el contrato.");
+    if (insertError) {
+      console.error("Supabase insert error:", insertError);
+      return NextResponse.json({ error: `Error al guardar el contrato: ${insertError.message}` }, { status: 500 });
+    }
 
     return NextResponse.json({ contract_id: contract.id });
   } catch (err) {
     console.error("Contract from proposal error:", err);
-    return NextResponse.json({ error: "Error al generar el contrato." }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Error al generar el contrato." }, { status: 500 });
   }
 }
