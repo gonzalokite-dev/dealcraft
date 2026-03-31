@@ -56,7 +56,9 @@ export default function Comparison() {
         <div className="grid grid-cols-[1fr_1fr] gap-4 mb-1">
           <div className="flex items-center gap-2 pb-3 border-b border-border">
             <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <span className="text-gray-500 font-bold leading-none" style={{ fontSize: "9px" }}>✕</span>
+              <svg className="w-2.5 h-2.5 text-gray-400" fill="none" viewBox="0 0 10 10" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2 2l6 6M8 2l-6 6" />
+              </svg>
             </div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Sin DealCraft</p>
           </div>
@@ -75,7 +77,9 @@ export default function Comparison() {
             <div key={i} className="grid grid-cols-[1fr_1fr] gap-4 py-5">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-gray-400 font-bold leading-none" style={{ fontSize: "8px" }}>✕</span>
+                  <svg className="w-2.5 h-2.5 text-gray-400" fill="none" viewBox="0 0 10 10" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2 2l6 6M8 2l-6 6" />
+                  </svg>
                 </span>
                 <p className="text-sm text-muted leading-relaxed">{row.problem}</p>
               </div>

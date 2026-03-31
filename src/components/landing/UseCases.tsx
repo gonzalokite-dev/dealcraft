@@ -1,6 +1,10 @@
 const profiles = [
   {
-    emoji: "💼",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6V5a3 3 0 016 0v1m-6 0h6m-6 0H4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-2m-6 0h6" />
+      </svg>
+    ),
     title: "Autónomo de servicios",
     subtitle: "Diseñador, desarrollador, copywriter, fotógrafo…",
     description: "Envías propuestas a clientes nuevos cada semana. Necesitas que sean rápidas, profesionales y que cierren — sin que parezcan una plantilla de Word.",
@@ -12,7 +16,11 @@ const profiles = [
     ],
   },
   {
-    emoji: "🏢",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m2 0v-5a1 1 0 011-1h2a1 1 0 011 1v5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h6" />
+      </svg>
+    ),
     title: "Consultor o agencia",
     subtitle: "Marketing, estrategia, RRHH, IT, legal…",
     description: "Gestionas múltiples clientes y proyectos en paralelo. Cada propuesta tiene que ser personalizada, pero no puedes dedicar horas a cada una.",
@@ -24,7 +32,11 @@ const profiles = [
     ],
   },
   {
-    emoji: "🔄",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    ),
     title: "Empresa con servicios recurrentes",
     subtitle: "Retenciones mensuales, SaaS, mantenimientos…",
     description: "Vendes cuotas mensuales o contratos de mantenimiento. Necesitas propuestas que justifiquen el valor y contratos que protejan la relación a largo plazo.",
@@ -60,10 +72,12 @@ export default function UseCases() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {profiles.map((p) => (
-            <div key={p.title} className="bg-background border border-border rounded-2xl p-7 flex flex-col gap-5 hover:border-gray-300 hover:shadow-card transition-all">
+            <div key={p.title} className="bg-background border border-border rounded-2xl p-7 flex flex-col gap-5 hover:border-gray-300 hover:shadow-card transition-all group">
               <div>
-                <span className="text-3xl">{p.emoji}</span>
-                <h3 className="font-heading font-bold text-secondary text-lg mt-3">{p.title}</h3>
+                <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center text-primary group-hover:bg-primary/12 transition-colors">
+                  {p.icon}
+                </div>
+                <h3 className="font-heading font-bold text-secondary text-lg mt-4">{p.title}</h3>
                 <p className="text-xs text-muted mt-1">{p.subtitle}</p>
               </div>
               <p className="text-sm text-muted leading-relaxed border-t border-border pt-5">{p.description}</p>

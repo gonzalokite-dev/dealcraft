@@ -5,7 +5,6 @@ const testimonials = [
     name: "Valentina Roca",
     role: "Consultora de marketing digital · Autónoma",
     initials: "VR",
-    color: "from-blue-400 to-indigo-500",
   },
   {
     quote:
@@ -13,7 +12,6 @@ const testimonials = [
     name: "Andrés Fuentes",
     role: "Consultor de estrategia digital · Freelance",
     initials: "AF",
-    color: "from-violet-400 to-purple-500",
   },
   {
     quote:
@@ -21,7 +19,6 @@ const testimonials = [
     name: "Carolina Mejía",
     role: "Socia directora · Agencia de comunicación",
     initials: "CM",
-    color: "from-emerald-400 to-teal-500",
   },
   {
     quote:
@@ -29,7 +26,6 @@ const testimonials = [
     name: "Jorge Linares",
     role: "Desarrollador web · Autónomo",
     initials: "JL",
-    color: "from-amber-400 to-orange-500",
   },
 ];
 
@@ -77,8 +73,10 @@ export default function Testimonials() {
                 <p className="text-sm text-secondary leading-relaxed">{t.quote}</p>
               </div>
               <div className="flex items-center gap-3 pt-4 border-t border-border">
-                <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white font-semibold text-xs font-heading">{t.initials}</span>
+                <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z" />
+                  </svg>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-secondary">{t.name}</p>
