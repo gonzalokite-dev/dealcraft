@@ -615,6 +615,37 @@ export default function ProposalPage() {
         </div>
       )}
 
+      {/* PDF export overlay */}
+      {exporting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-surface rounded-2xl border border-border shadow-2xl p-10 flex flex-col items-center gap-5 w-full max-w-xs mx-4">
+            <div className="relative w-14 h-14">
+              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="currentColor" strokeWidth="3" className="text-border" />
+                <circle cx="28" cy="28" r="24" fill="none" stroke="currentColor" strokeWidth="3"
+                  strokeDasharray="150.8" strokeDashoffset="37.7" strokeLinecap="round"
+                  className="text-primary animate-spin" style={{ animationDuration: "1.5s" }} />
+              </svg>
+              <svg className="w-6 h-6 absolute inset-0 m-auto text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v10M8 9l4 4 4-4M4 17h16v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" />
+              </svg>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="font-heading font-semibold text-secondary">Generando PDF</p>
+              <p className="text-sm text-muted">Aplicando tu plantilla y marca…</p>
+            </div>
+            <div className="w-full space-y-2">
+              {["Componiendo secciones", "Aplicando estilos", "Exportando documento"].map((step, i) => (
+                <div key={step} className="flex items-center gap-2.5">
+                  <span className="text-primary animate-typing-dot text-xs" style={{ animationDelay: `${i * 0.4}s` }}>✦</span>
+                  <span className="text-xs text-muted">{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contract modal */}
       {showContractModal && (
         <ContractModal

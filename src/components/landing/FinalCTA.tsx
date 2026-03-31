@@ -4,7 +4,6 @@ export default function FinalCTA() {
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden" style={{ background: "#1B2A3A" }}>
 
-      {/* Decorative radial glows */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -14,7 +13,6 @@ export default function FinalCTA() {
         }}
       />
 
-      {/* Dot grid overlay */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-20"
@@ -27,23 +25,21 @@ export default function FinalCTA() {
       <div className="max-w-7xl mx-auto relative">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          {/* Left */}
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-4 py-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span className="text-white/70 text-xs font-medium">Sin tarjeta de crédito requerida</span>
+              <span className="text-white/70 text-xs font-medium">Sin tarjeta de crédito · Listo en 2 minutos</span>
             </div>
             <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl text-white leading-tight">
-              Tu próxima propuesta
+              Deja de perder proyectos
               <br />
-              <em className="not-italic" style={{ color: "rgba(255,255,255,0.35)" }}>puede estar lista en 5 min.</em>
+              <em className="not-italic" style={{ color: "rgba(255,255,255,0.35)" }}>por una propuesta mediocre.</em>
             </h2>
             <p className="text-white/50 text-base leading-relaxed max-w-md">
-              Sin plantillas que adaptar. Sin copiar y pegar. Sin pasar horas
-              redactando algo que igual queda genérico.
+              Cada propuesta genérica que envías es una oportunidad que le das a tu competencia.
+              Con DealCraft, la próxima que mandes va a marcar la diferencia.
             </p>
 
-            {/* Mini social proof */}
             <div className="flex items-center gap-4 pt-2">
               <div className="flex -space-x-2">
                 {["VR", "AF", "CM", "JL"].map((i, idx) => (
@@ -61,12 +57,11 @@ export default function FinalCTA() {
                 ))}
               </div>
               <p className="text-white/40 text-xs">
-                +200 consultores ya usan DealCraft
+                +200 consultores ya cierran más con DealCraft
               </p>
             </div>
           </div>
 
-          {/* Right */}
           <div className="lg:flex lg:flex-col lg:items-end space-y-4">
             <Link
               href="/signup"
@@ -81,10 +76,10 @@ export default function FinalCTA() {
               href="/signup?plan=pro"
               className="inline-flex items-center gap-2 font-medium text-white/60 border border-white/15 px-8 py-3.5 rounded-full hover:border-white/30 hover:text-white/80 transition-all text-sm"
             >
-              Ver planes Pro
+              Ver planes Pro →
             </Link>
             <p className="text-white/25 text-xs">
-              3 propuestas gratuitas · Sin compromisos
+              3 propuestas gratuitas · Sin compromisos · Cancela cuando quieras
             </p>
           </div>
         </div>

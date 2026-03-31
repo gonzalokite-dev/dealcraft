@@ -38,8 +38,27 @@ const PROPOSAL_STATUS: Record<string, { label: string; class: string }> = {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-ES", {
-    day: "numeric", month: "long", year: "numeric",
+    day: "numeric", month: "short", year: "numeric",
   });
+}
+
+function ProposalIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={1.5}>
+      <rect x="2" y="1" width="12" height="14" rx="2" />
+      <path strokeLinecap="round" d="M5 5h6M5 8h6M5 11h4" />
+    </svg>
+  );
+}
+
+function ContractIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={1.5}>
+      <rect x="2" y="1" width="12" height="14" rx="2" />
+      <path strokeLinecap="round" d="M5 5h6M5 8h6M5 11h2" />
+      <path strokeLinecap="round" d="M10 12l1.5 1.5L14 11" />
+    </svg>
+  );
 }
 
 export default function DashboardClient({ proposals: initialProposals, contracts: initialContracts, profile, userEmail }: Props) {
@@ -75,6 +94,10 @@ export default function DashboardClient({ proposals: initialProposals, contracts
     }
   }
 
+  const greeting = profile?.business_name
+    ? `Hola, ${profile.business_name.split(" ")[0]}`
+    : "Mi espacio de trabajo";
+
   return (
     <div className="min-h-screen bg-background">
 
@@ -87,7 +110,7 @@ export default function DashboardClient({ proposals: initialProposals, contracts
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted hidden sm:block">{userEmail}</span>
             <Link href="/settings" className="text-xs text-muted hover:text-secondary transition-colors">
-              Configuración
+              Ajustes
             </Link>
             <form action="/api/auth/signout" method="POST">
               <button className="text-xs text-muted hover:text-secondary transition-colors">
@@ -98,42 +121,44 @@ export default function DashboardClient({ proposals: initialProposals, contracts
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-6 py-10">
 
         {/* Page header */}
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-secondary">
-              {profile?.business_name ? `Hola, ${profile.business_name}` : "Mi espacio de trabajo"}
-            </h1>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-secondary">{greeting}</h1>
             <p className="text-muted text-sm mt-1">
               {tab === "proposals"
-                ? proposalCount === 0 ? "Aún no tienes propuestas." : `${proposalCount} propuesta${proposalCount !== 1 ? "s" : ""}`
-                : contracts.length === 0 ? "Aún no tienes contratos." : `${contracts.length} contrato${contracts.length !== 1 ? "s" : ""}`}
+                ? proposalCount === 0
+                  ? "Crea tu primera propuesta en menos de 5 minutos."
+                  : `${proposalCount} propuesta${proposalCount !== 1 ? "s" : ""} · ${proposals.filter(p => p.status === "approved").length} aprobada${proposals.filter(p => p.status === "approved").length !== 1 ? "s" : ""}`
+                : contracts.length === 0
+                  ? "Genera contratos profesionales a partir de tus propuestas."
+                  : `${contracts.length} contrato${contracts.length !== 1 ? "s" : ""}`}
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
             {tab === "proposals" ? (
               atLimit ? (
-                <Link
-                  href="/signup?plan=pro"
-                  className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-colors"
-                >
+                <Link href="/signup?plan=pro"
+                  className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-colors">
                   Actualizar a Pro
                 </Link>
               ) : (
-                <Link
-                  href="/proposal/new"
-                  className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
+                <Link href="/proposal/new"
+                  className="inline-flex items-center gap-2 text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 2v10M2 7h10" />
+                  </svg>
                   Nueva propuesta
                 </Link>
               )
             ) : (
-              <Link
-                href="/contract/new"
-                className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
+              <Link href="/contract/new"
+                className="inline-flex items-center gap-2 text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 2v10M2 7h10" />
+                </svg>
                 Nuevo contrato
               </Link>
             )}
@@ -141,13 +166,21 @@ export default function DashboardClient({ proposals: initialProposals, contracts
         </div>
 
         {/* Free plan banner */}
-        {isFree && tab === "proposals" && (
+        {isFree && tab === "proposals" && proposalCount > 0 && (
           <div className="bg-primary-50 border border-primary-100 rounded-xl px-5 py-4 flex items-center justify-between gap-4 mb-6">
-            <p className="text-sm text-secondary">
-              Plan Free — <span className="font-medium">{proposalCount} de 3</span> propuestas usadas.
-            </p>
-            <Link href="/signup?plan=pro" className="text-xs font-medium text-primary hover:underline flex-shrink-0">
-              Ver planes →
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 2a6 6 0 100 12A6 6 0 008 2zM8 5v4M8 10v1" />
+                </svg>
+              </div>
+              <p className="text-sm text-secondary">
+                Plan Free — <span className="font-semibold">{proposalCount} de 3</span> propuestas usadas.
+                {atLimit && <span className="text-red-500 ml-1">Has alcanzado el límite.</span>}
+              </p>
+            </div>
+            <Link href="/signup?plan=pro" className="text-xs font-semibold text-primary hover:underline flex-shrink-0">
+              Ver Pro →
             </Link>
           </div>
         )}
@@ -155,17 +188,13 @@ export default function DashboardClient({ proposals: initialProposals, contracts
         {/* Tabs */}
         <div className="flex gap-1 mb-8 border-b border-border">
           {(["proposals", "contracts"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                tab === t
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted hover:text-secondary"
-              }`}
-            >
+            <button key={t} onClick={() => setTab(t)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                tab === t ? "border-primary text-primary" : "border-transparent text-muted hover:text-secondary"
+              }`}>
+              {t === "proposals" ? <ProposalIcon /> : <ContractIcon />}
               {t === "proposals" ? "Propuestas" : "Contratos"}
-              <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === t ? "bg-primary/10 text-primary" : "bg-gray-100 text-muted"}`}>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === t ? "bg-primary/10 text-primary" : "bg-gray-100 text-muted"}`}>
                 {t === "proposals" ? proposals.length : contracts.length}
               </span>
             </button>
@@ -180,70 +209,78 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                 const s = PROPOSAL_STATUS[p.status ?? "draft"];
                 const isConfirming = confirmDelete === p.id;
                 return (
-                  <div key={p.id} className="relative bg-surface border border-border rounded-2xl p-6 hover:border-gray-300 hover:shadow-card transition-all group">
+                  <div key={p.id} className="relative bg-surface border border-border rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-card transition-all group">
 
-                    {/* Delete button */}
                     {!isConfirming && (
-                      <button
-                        onClick={(e) => { e.preventDefault(); setConfirmDelete(p.id); }}
-                        className="absolute top-4 right-4 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                        aria-label="Eliminar propuesta"
-                      >
+                      <button onClick={(e) => { e.preventDefault(); setConfirmDelete(p.id); }}
+                        className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all z-10"
+                        aria-label="Eliminar">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" />
                         </svg>
                       </button>
                     )}
 
-                    {/* Confirm delete overlay */}
                     {isConfirming && (
                       <div className="absolute inset-0 bg-surface rounded-2xl border border-red-200 flex flex-col items-center justify-center gap-3 p-4 z-10">
                         <p className="text-sm font-medium text-secondary text-center">¿Eliminar esta propuesta?</p>
                         <p className="text-xs text-muted text-center">Esta acción no se puede deshacer.</p>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="px-4 py-1.5 rounded-full border border-border text-xs font-medium text-secondary hover:border-gray-400 transition-colors"
-                          >
+                          <button onClick={() => setConfirmDelete(null)}
+                            className="px-4 py-1.5 rounded-full border border-border text-xs font-medium text-secondary hover:border-gray-400 transition-colors">
                             Cancelar
                           </button>
-                          <button
-                            onClick={() => deleteProposal(p.id)}
-                            disabled={deleting}
-                            className="px-4 py-1.5 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-60"
-                          >
-                            {deleting ? "Eliminando..." : "Eliminar"}
+                          <button onClick={() => deleteProposal(p.id)} disabled={deleting}
+                            className="px-4 py-1.5 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-60">
+                            {deleting ? "..." : "Eliminar"}
                           </button>
                         </div>
                       </div>
                     )}
 
                     <Link href={`/proposal/${p.id}`} className="block">
-                      <div className="flex items-start justify-between gap-2 mb-3 pr-6">
-                        <div>
-                          <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors">
-                            {p.client_name}
-                          </p>
-                          {p.client_company && (
-                            <p className="text-xs text-muted mt-0.5">{p.client_company}</p>
-                          )}
+                      {/* Card top accent */}
+                      <div className="h-1 w-full bg-gradient-to-r from-primary/40 to-primary/10" />
+                      <div className="p-6">
+                        <div className="flex items-start justify-between gap-2 mb-4 pr-6">
+                          <div className="min-w-0">
+                            <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors truncate">
+                              {p.client_name}
+                            </p>
+                            {p.client_company && (
+                              <p className="text-xs text-muted mt-0.5 truncate">{p.client_company}</p>
+                            )}
+                          </div>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
+                            {s.label}
+                          </span>
                         </div>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
-                          {s.label}
-                        </span>
+                        <p className="text-xs text-muted mb-1 truncate">{p.service_type}</p>
+                        <p className="text-xs text-muted/60">{formatDate(p.created_at)}</p>
                       </div>
-                      <p className="text-xs text-muted mb-2">{p.service_type}</p>
-                      <p className="text-xs text-muted">{formatDate(p.created_at)}</p>
                     </Link>
                   </div>
                 );
               })}
+
+              {/* New proposal CTA card */}
+              {!atLimit && (
+                <Link href="/proposal/new"
+                  className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[140px]">
+                  <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12M4 10h12" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-muted group-hover:text-primary transition-colors">Nueva propuesta</span>
+                </Link>
+              )}
             </div>
           ) : (
             <EmptyState
               title="Sin propuestas aún"
-              description="Crea tu primera propuesta en menos de 5 minutos."
-              cta="Crear propuesta"
+              description="Crea tu primera propuesta en menos de 5 minutos. La IA hace el trabajo pesado."
+              cta="Crear primera propuesta"
               href="/proposal/new"
               disabled={atLimit}
             />
@@ -258,14 +295,12 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                 const s = CONTRACT_STATUS_LABELS[c.status ?? "draft"];
                 const isConfirming = confirmDelete === c.id;
                 return (
-                  <div key={c.id} className="relative bg-surface border border-border rounded-2xl p-6 hover:border-gray-300 hover:shadow-card transition-all group">
+                  <div key={c.id} className="relative bg-surface border border-border rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-card transition-all group">
 
                     {!isConfirming && (
-                      <button
-                        onClick={(e) => { e.preventDefault(); setConfirmDelete(c.id); }}
-                        className="absolute top-4 right-4 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                        aria-label="Eliminar contrato"
-                      >
+                      <button onClick={(e) => { e.preventDefault(); setConfirmDelete(c.id); }}
+                        className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all z-10"
+                        aria-label="Eliminar">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" />
                         </svg>
@@ -277,50 +312,56 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                         <p className="text-sm font-medium text-secondary text-center">¿Eliminar este contrato?</p>
                         <p className="text-xs text-muted text-center">Esta acción no se puede deshacer.</p>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="px-4 py-1.5 rounded-full border border-border text-xs font-medium text-secondary hover:border-gray-400 transition-colors"
-                          >
+                          <button onClick={() => setConfirmDelete(null)}
+                            className="px-4 py-1.5 rounded-full border border-border text-xs font-medium text-secondary hover:border-gray-400 transition-colors">
                             Cancelar
                           </button>
-                          <button
-                            onClick={() => deleteContract(c.id)}
-                            disabled={deleting}
-                            className="px-4 py-1.5 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-60"
-                          >
-                            {deleting ? "Eliminando..." : "Eliminar"}
+                          <button onClick={() => deleteContract(c.id)} disabled={deleting}
+                            className="px-4 py-1.5 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-60">
+                            {deleting ? "..." : "Eliminar"}
                           </button>
                         </div>
                       </div>
                     )}
 
                     <Link href={`/contract/${c.id}`} className="block">
-                      <div className="flex items-start justify-between gap-2 mb-3 pr-6">
-                        <div>
-                          <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors">
-                            {c.client_name}
-                          </p>
-                          {c.client_company && (
-                            <p className="text-xs text-muted mt-0.5">{c.client_company}</p>
-                          )}
+                      <div className="h-1 w-full bg-gradient-to-r from-secondary/30 to-secondary/10" />
+                      <div className="p-6">
+                        <div className="flex items-start justify-between gap-2 mb-4 pr-6">
+                          <div className="min-w-0">
+                            <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors truncate">
+                              {c.client_name}
+                            </p>
+                            {c.client_company && (
+                              <p className="text-xs text-muted mt-0.5 truncate">{c.client_company}</p>
+                            )}
+                          </div>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
+                            {s.label}
+                          </span>
                         </div>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
-                          {s.label}
-                        </span>
+                        <p className="text-xs text-muted mb-1">{CONTRACT_TYPE_LABELS[c.contract_type] ?? c.contract_type}</p>
+                        <p className="text-xs text-muted/60">{formatDate(c.created_at)}</p>
                       </div>
-                      <p className="text-xs text-muted mb-2">
-                        {CONTRACT_TYPE_LABELS[c.contract_type] ?? c.contract_type}
-                      </p>
-                      <p className="text-xs text-muted">{formatDate(c.created_at)}</p>
                     </Link>
                   </div>
                 );
               })}
+
+              <Link href="/contract/new"
+                className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[140px]">
+                <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                  <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12M4 10h12" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-muted group-hover:text-primary transition-colors">Nuevo contrato</span>
+              </Link>
             </div>
           ) : (
             <EmptyState
               title="Sin contratos aún"
-              description="Genera un contrato de prestación de servicios profesional en minutos."
+              description="Genera contratos de prestación de servicios directamente desde tus propuestas."
               cta="Crear contrato"
               href="/contract/new"
             />
@@ -336,8 +377,13 @@ function EmptyState({ title, description, cta, href, disabled }: {
 }) {
   return (
     <div className="border border-dashed border-border rounded-2xl p-16 text-center">
+      <div className="w-12 h-12 rounded-full bg-primary/8 flex items-center justify-center mx-auto mb-4">
+        <svg className="w-6 h-6 text-primary/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16M4 12h16" />
+        </svg>
+      </div>
       <p className="font-heading text-xl font-semibold text-secondary mb-2">{title}</p>
-      <p className="text-sm text-muted mb-6">{description}</p>
+      <p className="text-sm text-muted mb-6 max-w-xs mx-auto">{description}</p>
       {!disabled && (
         <Link href={href} className="inline-block text-sm font-medium bg-primary text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors">
           {cta}

@@ -46,7 +46,11 @@
       "Bash(curl -s \"https://stitch.withgoogle.com/docs/mcp/setup\")",
       "Bash(curl -s \"https://stitch.withgoogle.com/docs/mcp\")",
       "Bash(ls:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Read(//c/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/**)",
+      "Bash(done)"
     ]
   }
 }
