@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       sections,
     } = body;
 
-    if (!client_name || !service_type || !description || !goals) {
+    if (!client_name || !service_type || !description) {
       return NextResponse.json({ error: "Faltan campos obligatorios." }, { status: 400 });
     }
 
