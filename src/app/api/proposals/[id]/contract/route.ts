@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { CONTRACT_TYPE_LABELS, PROPOSAL_TYPE_LABELS } from "@/lib/proposals/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -146,7 +147,8 @@ Devuelve ÚNICAMENTE el texto del contrato. Sin comentarios, sin markdown adicio
     const generated_content = completion.choices[0].message.content;
     if (!generated_content) throw new Error("La IA no devolvió contenido.");
 
-    const { data: contract, error: insertError } = await supabase
+    const admin = createAdminClient();
+    const { data: contract, error: insertError } = await admin
       .from("contracts")
       .insert({
         user_id: user.id,
