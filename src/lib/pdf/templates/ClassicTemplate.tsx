@@ -9,9 +9,8 @@ export function ClassicTemplate({
   const styles = StyleSheet.create({
     page: { fontFamily: "Helvetica", fontSize: 10, color: secondaryColor, backgroundColor: "#FFFFFF", paddingTop: 48, paddingBottom: 64, paddingHorizontal: 56 },
     header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-    headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-    logo: { width: 36, height: 36, objectFit: "contain" },
-    businessName: { fontFamily: "Helvetica-Bold", fontSize: 13, color: secondaryColor },
+    logo: { height: 52, maxWidth: 160, objectFit: "contain" },
+    businessNameOnly: { fontFamily: "Helvetica-Bold", fontSize: 15, color: secondaryColor },
     headerDate: { fontSize: 8, color: "#9E9891" },
     accent: { height: 2, backgroundColor: primaryColor, marginBottom: 36, borderRadius: 1 },
     titleBlock: { marginBottom: 36 },
@@ -31,10 +30,10 @@ export function ClassicTemplate({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-            <Text style={styles.businessName}>{businessName}</Text>
-          </View>
+          {logoUrl
+            ? <Image src={logoUrl} style={styles.logo} />
+            : <Text style={styles.businessNameOnly}>{businessName}</Text>
+          }
           <Text style={styles.headerDate}>{createdAt}</Text>
         </View>
         <View style={styles.accent} />

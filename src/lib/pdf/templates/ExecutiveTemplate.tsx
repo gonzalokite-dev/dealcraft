@@ -11,13 +11,10 @@ export function ExecutiveTemplate({
 
   const styles = StyleSheet.create({
     page: { fontFamily: "Helvetica", fontSize: 10, color: secondaryColor, backgroundColor: "#FFFFFF", paddingTop: 48, paddingBottom: 64, paddingLeft: PAD + STRIP + 8, paddingRight: PAD },
-    // Left color strip
     strip: { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP, backgroundColor: primaryColor },
     header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: "#E8E4DE" },
-    headerLeft: { flexDirection: "column", gap: 6 },
-    logoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    logo: { width: 28, height: 28, objectFit: "contain" },
-    businessName: { fontFamily: "Helvetica-Bold", fontSize: 12, color: secondaryColor },
+    logo: { height: 48, maxWidth: 160, objectFit: "contain" },
+    businessNameOnly: { fontFamily: "Helvetica-Bold", fontSize: 14, color: secondaryColor },
     headerDate: { fontSize: 8, color: "#9E9891" },
     titleBlock: { marginBottom: 32 },
     proposalLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: primaryColor, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 },
@@ -35,16 +32,13 @@ export function ExecutiveTemplate({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Left strip */}
         <View style={styles.strip} fixed />
 
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.logoRow}>
-              {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-              <Text style={styles.businessName}>{businessName}</Text>
-            </View>
-          </View>
+          {logoUrl
+            ? <Image src={logoUrl} style={styles.logo} />
+            : <Text style={styles.businessNameOnly}>{businessName}</Text>
+          }
           <Text style={styles.headerDate}>{createdAt}</Text>
         </View>
 

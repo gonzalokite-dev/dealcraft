@@ -4,193 +4,50 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { PROPOSAL_TYPES, SECTORS, TONES, LENGTHS, LANGUAGES } from "@/lib/proposals/constants";
+import { TONES, LENGTHS } from "@/lib/proposals/constants";
 
 interface FormData {
-  // Step 1 — Client
   client_name: string;
   client_company: string;
   client_email: string;
-  // Step 2 — Project type
-  proposal_type: string;
-  sector: string;
-  sector_custom: string;
   service_type: string;
-  // Step 3 — Context
   description: string;
-  goals: string;
-  specific_deliverables: string;
-  // Step 4 — Dynamic timeline (shared price / payment)
-  price: string;
-  payment_terms: string;
-  // proyecto_puntual
-  project_duration: string;
-  project_phases: string;
-  // servicios_recurrentes
-  monthly_deliverables: string;
-  contract_duration: string;
-  // consultoria
-  session_format: string;
-  num_sessions: string;
-  delivery_format: string;
-  // retencion_mensual
-  included_hours: string;
-  response_time: string;
-  min_contract_duration: string;
-  // colaboracion
-  dedication: string;
-  collaboration_duration: string;
-  collaboration_format: string;
-  // Step 4 — Style
   tone: string;
   length: string;
   language: string;
 }
 
 const initialForm: FormData = {
-  client_name: "", client_company: "", client_email: "",
-  proposal_type: "proyecto_puntual", sector: "", sector_custom: "", service_type: "",
-  description: "", goals: "", specific_deliverables: "",
-  price: "", payment_terms: "",
-  project_duration: "", project_phases: "",
-  monthly_deliverables: "", contract_duration: "",
-  session_format: "", num_sessions: "", delivery_format: "",
-  included_hours: "", response_time: "", min_contract_duration: "",
-  dedication: "", collaboration_duration: "", collaboration_format: "",
-  tone: "formal_ejecutivo", length: "estandar", language: "es",
+  client_name: "",
+  client_company: "",
+  client_email: "",
+  service_type: "",
+  description: "",
+  tone: "formal_ejecutivo",
+  length: "estandar",
+  language: "es",
 };
 
-const TOTAL_STEPS = 4;
+const TONE_OPTIONS = [
+  { value: "formal_ejecutivo",   label: "Ejecutivo",   desc: "Corporativo y estructurado" },
+  { value: "cercano_directo",    label: "Directo",     desc: "Ágil y sin rodeos" },
+  { value: "tecnico_detallado",  label: "Técnico",     desc: "Con profundidad técnica" },
+  { value: "empatico_consultivo",label: "Consultivo",  desc: "Centrado en el cliente" },
+];
 
-const PROPOSAL_TYPE_ICONS: Record<string, string> = {
-  proyecto_puntual: "◆", servicios_recurrentes: "↻",
-  consultoria: "◎", retencion_mensual: "▣", colaboracion: "⬡",
-};
+const LENGTH_OPTIONS = [
+  { value: "conciso",   label: "Conciso",   desc: "1 pág. aprox." },
+  { value: "estandar",  label: "Estándar",  desc: "2-3 págs." },
+  { value: "detallado", label: "Detallado", desc: "4+ págs." },
+];
 
-const TONE_DESCRIPTIONS: Record<string, string> = {
-  formal_ejecutivo: "Corporativo y estructurado",
-  cercano_directo: "Ágil y sin rodeos",
-  tecnico_detallado: "Con profundidad técnica",
-  empatico_consultivo: "Centrado en el cliente",
-};
+const PROMPTS_PLACEHOLDER = `Ejemplos de lo que puedes incluir:
 
-const PRICE_CONFIG: Record<string, { label: string; placeholder: string }> = {
-  proyecto_puntual:      { label: "Precio total",          placeholder: "Ej. 3.500 €" },
-  servicios_recurrentes: { label: "Cuota mensual",          placeholder: "Ej. 800 €/mes" },
-  consultoria:           { label: "Precio total o por sesión", placeholder: "Ej. 200 €/sesión" },
-  retencion_mensual:     { label: "Fee mensual",            placeholder: "Ej. 1.500 €/mes" },
-  colaboracion:          { label: "Tarifa",                 placeholder: "Ej. 60 €/hora" },
-};
+• Quiero proponer a [cliente] una retención mensual de marketing digital de 2.500 €/mes. Incluye gestión de RRSS (8 posts), 1 newsletter, y reporte mensual de resultados. Duración mínima 6 meses. El cliente quiere aumentar su presencia online y generar leads.
 
-function DynamicTimelineFields({
-  form, inputClass, textareaClass, set, handleInput,
-}: {
-  form: FormData;
-  inputClass: string;
-  textareaClass: string;
-  set: (k: keyof FormData, v: string) => void;
-  handleInput: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-}) {
-  const t = form.proposal_type;
+• Propuesta de desarrollo web para una tienda ecommerce. Presupuesto total 8.000 €. Entregables: diseño UI, desarrollo en Shopify, migración de productos e integración de pasarela de pago. Plazo: 8 semanas.
 
-  if (t === "proyecto_puntual") return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Duración del proyecto <span className="text-red-400">*</span></label>
-        <input name="project_duration" type="text" value={form.project_duration} onChange={handleInput} autoFocus
-          placeholder="Ej. 4 semanas, 2 meses..." className={inputClass} />
-      </div>
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Fases o hitos <span className="text-muted font-normal">(opcional)</span></label>
-        <textarea name="project_phases" rows={3} value={form.project_phases} onChange={handleInput}
-          placeholder="Ej.&#x0a;Semana 1-2: diseño y wireframes&#x0a;Semana 3-4: desarrollo&#x0a;Semana 5: revisiones y entrega" className={textareaClass} />
-      </div>
-    </div>
-  );
-
-  if (t === "servicios_recurrentes") return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Entregables mensuales <span className="text-red-400">*</span></label>
-        <textarea name="monthly_deliverables" rows={3} value={form.monthly_deliverables} onChange={handleInput} autoFocus
-          placeholder="Ej.&#x0a;- 8 publicaciones en RRSS&#x0a;- 1 informe mensual de resultados&#x0a;- Gestión de comunidad" className={textareaClass} />
-      </div>
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Duración del contrato <span className="text-red-400">*</span></label>
-        <input name="contract_duration" type="text" value={form.contract_duration} onChange={handleInput}
-          placeholder="Ej. 6 meses, 1 año, indefinido con preaviso de 30 días..." className={inputClass} />
-      </div>
-    </div>
-  );
-
-  if (t === "consultoria") return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Formato de las sesiones <span className="text-red-400">*</span></label>
-        <input name="session_format" type="text" value={form.session_format} onChange={handleInput} autoFocus
-          placeholder="Ej. 2h semanales vía videollamada, 1 día presencial..." className={inputClass} />
-      </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Nº de sesiones o días</label>
-          <input name="num_sessions" type="text" value={form.num_sessions} onChange={handleInput}
-            placeholder="Ej. 8 sesiones, 3 días..." className={inputClass} />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Formato de entrega</label>
-          <input name="delivery_format" type="text" value={form.delivery_format} onChange={handleInput}
-            placeholder="Ej. Informe + presentación" className={inputClass} />
-        </div>
-      </div>
-    </div>
-  );
-
-  if (t === "retencion_mensual") return (
-    <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Horas incluidas al mes</label>
-          <input name="included_hours" type="text" value={form.included_hours} onChange={handleInput} autoFocus
-            placeholder="Ej. 20 horas/mes" className={inputClass} />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Tiempo de respuesta garantizado</label>
-          <input name="response_time" type="text" value={form.response_time} onChange={handleInput}
-            placeholder="Ej. 24-48 horas hábiles" className={inputClass} />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Duración mínima <span className="text-red-400">*</span></label>
-        <input name="min_contract_duration" type="text" value={form.min_contract_duration} onChange={handleInput}
-          placeholder="Ej. 3 meses mínimo, renovación automática mensual" className={inputClass} />
-      </div>
-    </div>
-  );
-
-  if (t === "colaboracion") return (
-    <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Dedicación semanal <span className="text-red-400">*</span></label>
-          <input name="dedication" type="text" value={form.dedication} onChange={handleInput} autoFocus
-            placeholder="Ej. 10h/semana, 2 días/semana" className={inputClass} />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-secondary">Duración <span className="text-red-400">*</span></label>
-          <input name="collaboration_duration" type="text" value={form.collaboration_duration} onChange={handleInput}
-            placeholder="Ej. 3 meses, indefinido..." className={inputClass} />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-secondary">Formato de trabajo</label>
-        <input name="collaboration_format" type="text" value={form.collaboration_format} onChange={handleInput}
-          placeholder="Ej. Remoto, reunión semanal de seguimiento vía Meet" className={inputClass} />
-      </div>
-    </div>
-  );
-
-  return null;
-}
+• Consultoría de estrategia para startup SaaS. 4 sesiones de 2h, formato online. Precio 400 €/sesión. El cliente necesita definir su go-to-market y pricing.`;
 
 export default function NewProposalPage() {
   const router = useRouter();
@@ -198,6 +55,7 @@ export default function NewProposalPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [charCount, setCharCount] = useState(0);
 
   function set(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -205,29 +63,17 @@ export default function NewProposalPage() {
   }
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    set(e.target.name as keyof FormData, e.target.value);
+    const { name, value } = e.target;
+    set(name as keyof FormData, value);
+    if (name === "description") setCharCount(value.length);
   }
 
   function validateStep(): string {
     if (step === 1 && !form.client_name.trim()) return "El nombre del cliente es obligatorio.";
-    if (step === 2 && !form.service_type.trim()) return "El tipo de servicio es obligatorio.";
-    if (step === 3) {
-      if (!form.description.trim()) return "La descripción del proyecto es obligatoria.";
-      if (!form.goals.trim()) return "Los objetivos del cliente son obligatorios.";
-    }
-    if (step === 4) {
-      const t = form.proposal_type;
-      if (t === "proyecto_puntual" && !form.project_duration.trim()) return "La duración del proyecto es obligatoria.";
-      if (t === "servicios_recurrentes") {
-        if (!form.monthly_deliverables.trim()) return "Los entregables mensuales son obligatorios.";
-        if (!form.contract_duration.trim()) return "La duración del contrato es obligatoria.";
-      }
-      if (t === "consultoria" && !form.session_format.trim()) return "El formato de las sesiones es obligatorio.";
-      if (t === "retencion_mensual" && !form.min_contract_duration.trim()) return "La duración mínima es obligatoria.";
-      if (t === "colaboracion") {
-        if (!form.dedication.trim()) return "La dedicación semanal es obligatoria.";
-        if (!form.collaboration_duration.trim()) return "La duración de la colaboración es obligatoria.";
-      }
+    if (step === 2) {
+      if (!form.service_type.trim()) return "Indica el servicio que ofreces.";
+      if (!form.description.trim()) return "Describe la propuesta antes de continuar.";
+      if (form.description.trim().length < 50) return "Añade más detalle — cuanto más específico, mejor será la propuesta.";
     }
     return "";
   }
@@ -236,12 +82,7 @@ export default function NewProposalPage() {
     const err = validateStep();
     if (err) { setError(err); return; }
     setError("");
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-  }
-
-  function back() {
-    setError("");
-    setStep((s) => Math.max(s - 1, 1));
+    setStep(2);
   }
 
   async function handleSubmit() {
@@ -275,7 +116,14 @@ export default function NewProposalPage() {
       const res = await fetch("/api/proposals/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          // Map to the fields the generate route expects
+          goals: "",
+          specific_deliverables: "",
+          proposal_type: "proyecto_puntual",
+          sector: "",
+        }),
       });
 
       if (!res.ok) {
@@ -306,12 +154,12 @@ export default function NewProposalPage() {
     }
   }
 
-  const inputClass = "w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
-  const textareaClass = `${inputClass} resize-none`;
-  const priceConf = PRICE_CONFIG[form.proposal_type] ?? PRICE_CONFIG["proyecto_puntual"];
+  const inputCls = "w-full px-4 py-3.5 rounded-2xl border border-border bg-surface text-sm text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+
+      {/* Header */}
       <header className="border-b border-border bg-surface flex-shrink-0">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/dashboard" className="font-heading font-bold text-lg text-secondary tracking-tight">DealCraft</Link>
@@ -319,204 +167,219 @@ export default function NewProposalPage() {
         </div>
       </header>
 
-      <div className="h-1 bg-border flex-shrink-0">
-        <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+      {/* Progress bar */}
+      <div className="h-0.5 bg-border flex-shrink-0">
+        <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: step === 1 ? "50%" : "100%" }} />
       </div>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
         <div className="w-full max-w-xl">
-          <p className="text-xs text-muted mb-2 text-center tracking-widest uppercase">Paso {step} de {TOTAL_STEPS}</p>
+
+          {/* Step indicator */}
+          <div className="flex items-center justify-center gap-2 mb-10">
+            {[1, 2].map((s) => (
+              <div key={s} className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                  s < step ? "bg-primary text-white" :
+                  s === step ? "bg-primary text-white shadow-sm" :
+                  "bg-border text-muted"
+                }`}>
+                  {s < step ? (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                    </svg>
+                  ) : s}
+                </div>
+                {s < 2 && <div className={`w-12 h-0.5 transition-all ${s < step ? "bg-primary" : "bg-border"}`} />}
+              </div>
+            ))}
+          </div>
 
           {/* ── STEP 1: Cliente ── */}
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="text-center space-y-2">
-                <h1 className="font-heading text-2xl font-bold text-secondary">¿Para quién es esta propuesta?</h1>
-                <p className="text-sm text-muted">Indica los datos del cliente al que va dirigida</p>
+                <h1 className="font-heading text-3xl font-bold text-secondary">¿Para quién es esta propuesta?</h1>
+                <p className="text-sm text-muted">Los datos del cliente al que va dirigida</p>
               </div>
+
               <div className="space-y-3">
-                <input name="client_name" type="text" autoFocus value={form.client_name} onChange={handleInput}
-                  placeholder="Nombre del cliente *" className={inputClass} onKeyDown={(e) => e.key === "Enter" && next()} />
-                <input name="client_company" type="text" value={form.client_company} onChange={handleInput}
-                  placeholder="Empresa (opcional)" className={inputClass} onKeyDown={(e) => e.key === "Enter" && next()} />
-                <input name="client_email" type="email" value={form.client_email} onChange={handleInput}
-                  placeholder="Email del cliente (opcional)" className={inputClass} onKeyDown={(e) => e.key === "Enter" && next()} />
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 2: Proyecto ── */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="font-heading text-2xl font-bold text-secondary">¿Qué tipo de proyecto es?</h1>
-                <p className="text-sm text-muted">Esto define la estructura y los campos de la propuesta</p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {PROPOSAL_TYPES.map((t) => (
-                  <button key={t.value} type="button" onClick={() => set("proposal_type", t.value)}
-                    className={`flex flex-col gap-1 px-4 py-3 rounded-xl border text-left transition-colors ${
-                      form.proposal_type === t.value ? "border-primary bg-primary/5" : "border-border bg-surface hover:border-gray-300"}`}>
-                    <span className="text-base">{PROPOSAL_TYPE_ICONS[t.value]}</span>
-                    <span className={`text-xs font-semibold leading-tight ${form.proposal_type === t.value ? "text-primary" : "text-secondary"}`}>{t.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Sector</label>
-                <div className="flex flex-wrap gap-2">
-                  {SECTORS.map((s) => (
-                    <button key={s} type="button" onClick={() => set("sector", s)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        form.sector === s ? "border-primary bg-primary/5 text-primary" : "border-border text-muted hover:border-gray-300 hover:text-secondary"}`}>
-                      {s}
-                    </button>
-                  ))}
+                <div className="relative">
+                  <input
+                    name="client_name"
+                    type="text"
+                    autoFocus
+                    value={form.client_name}
+                    onChange={handleInput}
+                    placeholder="Nombre del contacto *"
+                    className={inputCls}
+                    onKeyDown={(e) => e.key === "Enter" && next()}
+                  />
                 </div>
-                {form.sector === "Otro" && (
-                  <input name="sector_custom" type="text" value={form.sector_custom} onChange={handleInput}
-                    placeholder="Especifica el sector..." className={inputClass} />
-                )}
+                <input
+                  name="client_company"
+                  type="text"
+                  value={form.client_company}
+                  onChange={handleInput}
+                  placeholder="Empresa (opcional)"
+                  className={inputCls}
+                  onKeyDown={(e) => e.key === "Enter" && next()}
+                />
+                <input
+                  name="client_email"
+                  type="email"
+                  value={form.client_email}
+                  onChange={handleInput}
+                  placeholder="Email del cliente (opcional)"
+                  className={inputCls}
+                  onKeyDown={(e) => e.key === "Enter" && next()}
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">¿Qué servicio ofreces? <span className="text-red-400">*</span></label>
-                <input name="service_type" type="text" value={form.service_type} onChange={handleInput}
-                  placeholder="Ej. Diseño web, Consultoría de marketing, Desarrollo de app..." className={inputClass}
-                  onKeyDown={(e) => e.key === "Enter" && next()} />
-              </div>
+
+              {error && (
+                <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={next}
+                className="w-full py-4 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-blue-700 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm"
+              >
+                Continuar →
+              </button>
+
+              <p className="text-center text-xs text-muted">Paso 1 de 2</p>
             </div>
           )}
 
-          {/* ── STEP 3: Contexto ── */}
-          {step === 3 && (
-            <div className="space-y-6">
+          {/* ── STEP 2: La propuesta ── */}
+          {step === 2 && (
+            <div className="space-y-7">
               <div className="text-center space-y-2">
-                <h1 className="font-heading text-2xl font-bold text-secondary">Cuéntanos el proyecto</h1>
-                <p className="text-sm text-muted">Cuanta más información, mejor será la propuesta generada</p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Descripción del proyecto <span className="text-red-400">*</span></label>
-                <textarea name="description" rows={4} autoFocus value={form.description} onChange={handleInput}
-                  placeholder="Describe el proyecto, el contexto del cliente y qué necesita..." className={textareaClass} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Objetivos del cliente <span className="text-red-400">*</span></label>
-                <textarea name="goals" rows={3} value={form.goals} onChange={handleInput}
-                  placeholder="¿Qué resultados espera lograr el cliente con este proyecto?" className={textareaClass} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">
-                  Entregables específicos <span className="text-muted font-normal">(opcional, mejora la precisión)</span>
-                </label>
-                <textarea name="specific_deliverables" rows={3} value={form.specific_deliverables} onChange={handleInput}
-                  placeholder="Lista los entregables concretos que el cliente recibirá..." className={textareaClass} />
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 4: Condiciones dinámicas ── */}
-          {step === 4 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="font-heading text-2xl font-bold text-secondary">Condiciones del proyecto</h1>
+                <h1 className="font-heading text-3xl font-bold text-secondary">Descríbele la propuesta a la IA</h1>
                 <p className="text-sm text-muted">
-                  {form.proposal_type === "proyecto_puntual" && "Duración, precio y tono de la propuesta"}
-                  {form.proposal_type === "servicios_recurrentes" && "Entregables mensuales, duración y precio"}
-                  {form.proposal_type === "consultoria" && "Formato de sesiones, precio y estilo"}
-                  {form.proposal_type === "retencion_mensual" && "Fee, horas incluidas y duración mínima"}
-                  {form.proposal_type === "colaboracion" && "Dedicación, duración y formato de trabajo"}
+                  Explica el proyecto con libertad — servicio, objetivos, precio, plazos, entregables.
+                  Cuanta más información, mejor será el resultado.
                 </p>
               </div>
 
-              {/* Dynamic fields per proposal type */}
-              <DynamicTimelineFields form={form} inputClass={inputClass} textareaClass={textareaClass} set={set} handleInput={handleInput} />
+              {/* Service */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">¿Qué servicio ofreces? *</label>
+                <input
+                  name="service_type"
+                  type="text"
+                  autoFocus
+                  value={form.service_type}
+                  onChange={handleInput}
+                  placeholder="Ej. Diseño web, Consultoría de marketing, Desarrollo de software..."
+                  className={inputCls}
+                />
+              </div>
 
-              {/* Price + payment (shared) */}
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">
-                    {priceConf.label} <span className="text-muted font-normal">(opcional)</span>
-                  </label>
-                  <input name="price" type="text" value={form.price} onChange={handleInput}
-                    placeholder={priceConf.placeholder} className={inputClass} />
+              {/* Main prompt */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Descripción de la propuesta *</label>
+                <div className="relative">
+                  <textarea
+                    name="description"
+                    rows={10}
+                    value={form.description}
+                    onChange={handleInput}
+                    placeholder={PROMPTS_PLACEHOLDER}
+                    className={`${inputCls} resize-none leading-relaxed`}
+                  />
+                  <div className="absolute bottom-3 right-4 text-xs text-muted/60 pointer-events-none">
+                    {charCount > 0 && `${charCount} car.`}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">
-                    Condiciones de pago <span className="text-muted font-normal">(opcional)</span>
-                  </label>
-                  <input name="payment_terms" type="text" value={form.payment_terms} onChange={handleInput}
-                    placeholder="Ej. 50% inicio, 50% entrega..." className={inputClass} />
-                </div>
+                <p className="text-xs text-muted">
+                  💡 Incluye precio, duración, entregables y contexto del cliente para que la propuesta sea más precisa.
+                </p>
               </div>
 
               {/* Tone */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Tono de la propuesta</label>
+              <div className="space-y-3">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Tono</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {TONES.map((t) => (
-                    <button key={t.value} type="button" onClick={() => set("tone", t.value)}
-                      className={`flex flex-col gap-0.5 px-4 py-3 rounded-xl border text-left transition-colors ${
-                        form.tone === t.value ? "border-primary bg-primary/5" : "border-border bg-surface hover:border-gray-300"}`}>
-                      <span className={`text-xs font-semibold ${form.tone === t.value ? "text-primary" : "text-secondary"}`}>{t.label}</span>
-                      <span className="text-xs text-muted">{TONE_DESCRIPTIONS[t.value]}</span>
+                  {TONE_OPTIONS.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => set("tone", t.value)}
+                      className={`flex flex-col gap-0.5 px-4 py-3.5 rounded-xl border text-left transition-all ${
+                        form.tone === t.value
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-surface hover:border-gray-300"
+                      }`}
+                    >
+                      <span className={`text-sm font-semibold ${form.tone === t.value ? "text-primary" : "text-secondary"}`}>{t.label}</span>
+                      <span className="text-xs text-muted">{t.desc}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Length + Language */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">Longitud</label>
-                  <div className="flex gap-2">
-                    {LENGTHS.map((l) => (
-                      <button key={l.value} type="button" onClick={() => set("length", l.value)}
-                        className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
-                          form.length === l.value ? "border-primary bg-primary/5 text-primary" : "border-border text-muted hover:border-gray-300"}`}>
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">Idioma</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {LANGUAGES.map((l) => (
-                      <button key={l.value} type="button" onClick={() => set("language", l.value)}
-                        className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-colors ${
-                          form.language === l.value ? "border-primary bg-primary/5 text-primary" : "border-border text-muted hover:border-gray-300"}`}>
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Length */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Extensión</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {LENGTH_OPTIONS.map((l) => (
+                    <button
+                      key={l.value}
+                      type="button"
+                      onClick={() => set("length", l.value)}
+                      className={`flex flex-col items-center gap-0.5 py-3.5 px-3 rounded-xl border text-center transition-all ${
+                        form.length === l.value
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-surface hover:border-gray-300"
+                      }`}
+                    >
+                      <span className={`text-sm font-semibold ${form.length === l.value ? "text-primary" : "text-secondary"}`}>{l.label}</span>
+                      <span className="text-xs text-muted">{l.desc}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
+
+              {error && (
+                <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setError(""); }}
+                  className="px-6 py-4 rounded-2xl border border-border text-sm font-medium text-secondary hover:border-gray-400 transition-colors"
+                >
+                  ← Atrás
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="flex-1 py-4 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-blue-700 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:pointer-events-none shadow-sm flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="text-white animate-typing-dot">✦</span>
+                      Generando propuesta…
+                    </>
+                  ) : (
+                    <>
+                      Generar propuesta con IA
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-center text-xs text-muted">Paso 2 de 2 · La generación tarda entre 20 y 60 segundos</p>
             </div>
           )}
 
-          {error && (
-            <p className="mt-4 text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-3">{error}</p>
-          )}
-
-          <div className="mt-8 flex gap-3">
-            {step > 1 && (
-              <button type="button" onClick={back}
-                className="flex-1 py-3 rounded-full border border-border text-sm font-medium text-secondary hover:border-gray-400 transition-colors">
-                Atrás
-              </button>
-            )}
-            {step < TOTAL_STEPS ? (
-              <button type="button" onClick={next}
-                className="flex-1 py-3 rounded-full bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-all hover:scale-[1.01] active:scale-[0.99]">
-                Continuar
-              </button>
-            ) : (
-              <button type="button" onClick={handleSubmit} disabled={loading}
-                className="flex-1 py-3 rounded-full bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:pointer-events-none">
-                {loading ? "Generando propuesta con IA..." : "Generar propuesta"}
-              </button>
-            )}
-          </div>
         </div>
       </main>
     </div>

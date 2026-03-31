@@ -9,9 +9,8 @@ export function MinimalTemplate({
   const styles = StyleSheet.create({
     page: { fontFamily: "Helvetica", fontSize: 10, color: "#1a1a1a", backgroundColor: "#FFFFFF", paddingTop: 56, paddingBottom: 64, paddingHorizontal: 64 },
     header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 48 },
-    headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-    logo: { width: 28, height: 28, objectFit: "contain" },
-    businessName: { fontFamily: "Helvetica-Bold", fontSize: 11, color: "#1a1a1a" },
+    logo: { height: 48, maxWidth: 160, objectFit: "contain" },
+    businessNameOnly: { fontFamily: "Helvetica-Bold", fontSize: 13, color: "#1a1a1a" },
     headerDate: { fontSize: 8, color: "#999" },
     titleBlock: { marginBottom: 40, paddingBottom: 32, borderBottomWidth: 1, borderBottomColor: "#e0e0e0" },
     proposalLabel: { fontSize: 8, color: "#999", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 },
@@ -31,10 +30,10 @@ export function MinimalTemplate({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-            <Text style={styles.businessName}>{businessName}</Text>
-          </View>
+          {logoUrl
+            ? <Image src={logoUrl} style={styles.logo} />
+            : <Text style={styles.businessNameOnly}>{businessName}</Text>
+          }
           <Text style={styles.headerDate}>{createdAt}</Text>
         </View>
 
