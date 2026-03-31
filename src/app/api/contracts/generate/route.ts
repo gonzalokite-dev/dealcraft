@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+
+export const maxDuration = 60;
+
 import { CONTRACT_TYPE_LABELS } from "@/lib/proposals/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

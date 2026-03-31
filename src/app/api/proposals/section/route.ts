@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+
+export const maxDuration = 60;
+
 import { createClient } from "@/lib/supabase/server";
 import { SECTION_LABELS, TONE_LABELS, LANGUAGE_LABELS } from "@/lib/proposals/constants";
 

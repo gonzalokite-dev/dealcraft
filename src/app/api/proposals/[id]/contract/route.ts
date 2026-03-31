@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CONTRACT_TYPE_LABELS, PROPOSAL_TYPE_LABELS } from "@/lib/proposals/constants";
 
+export const maxDuration = 60;
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const PROPOSAL_TO_CONTRACT: Record<string, string> = {
