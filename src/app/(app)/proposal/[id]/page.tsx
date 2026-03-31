@@ -33,20 +33,19 @@ const STATUS_LABELS: Record<string, { label: string; class: string }> = {
   approved: { label: "Aprobada",  class: "bg-green-50 text-green-600" },
 };
 
-/** Renders AI-generated text with bullets and line breaks */
 function SectionContent({ text }: { text: string }) {
   const paragraphs = text.split(/\n{2,}/);
   return (
     <div className="space-y-3">
       {paragraphs.map((para, pi) => {
         const lines = para.split("\n").filter(Boolean);
-        const isList = lines.every((l) => /^[-•*]/.test(l.trim()) || /^\d+\./.test(l.trim()));
+        const isList = lines.length > 1 && lines.every((l) => /^[-•*]/.test(l.trim()) || /^\d+\./.test(l.trim()));
         if (isList) {
           return (
-            <ul key={pi} className="space-y-1.5 pl-1">
+            <ul key={pi} className="space-y-2 pl-1">
               {lines.map((line, li) => (
                 <li key={li} className="flex items-start gap-2.5 text-sm text-secondary leading-relaxed">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0 mt-2" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0 mt-[7px]" />
                   <span>{line.replace(/^[-•*]\s*/, "").replace(/^\d+\.\s*/, "")}</span>
                 </li>
               ))}
@@ -65,16 +64,12 @@ function SectionContent({ text }: { text: string }) {
   );
 }
 
-/** Modal to collect minimal provider info before generating contract */
 function ContractModal({
-  clientName,
-  onClose,
-  onGenerate,
-  loading,
+  clientName, onClose, onGenerate, loading,
 }: {
   clientName: string;
   onClose: () => void;
-  onGenerate: (data: { provider_name: string; provider_nif: string; provider_address: string; ip_ownership: string; jurisdiction: string }) => void;
+  onGenerate: (d: { provider_name: string; provider_nif: string; provider_address: string; ip_ownership: string; jurisdiction: string }) => void;
   loading: boolean;
 }) {
   const [providerName, setProviderName] = useState("");
@@ -95,22 +90,24 @@ function ContractModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-md p-7 space-y-5">
         <div>
-          <h2 className="font-heading text-lg font-bold text-secondary">Generar contrato</h2>
+          <h2 className="font-heading text-lg font-bold text-secondary">Generar contrato de prestación de servicios</h2>
           <p className="text-sm text-muted mt-1">
-            Se redactará un contrato de prestación de servicios para <strong>{clientName}</strong> con los datos de la propuesta. Solo necesitamos tus datos legales.
+            Se redactará un contrato completo para <strong>{clientName}</strong> usando los datos de esta propuesta. Solo necesitamos tus datos legales.
           </p>
         </div>
-
         <div className="space-y-3">
           <p className="text-xs font-semibold text-muted uppercase tracking-wider">El prestador (tú)</p>
-          <input value={providerName} onChange={(e) => setProviderName(e.target.value)} placeholder="Tu nombre completo o razón social *" className={inputCls} autoFocus />
+          <input value={providerName} onChange={(e) => setProviderName(e.target.value)} autoFocus
+            placeholder="Tu nombre completo o razón social *" className={inputCls} />
           <div className="grid grid-cols-2 gap-2">
-            <input value={providerNif} onChange={(e) => setProviderNif(e.target.value)} placeholder="NIF / CIF (opcional)" className={inputCls} />
-            <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} placeholder="Jurisdicción" className={inputCls} />
+            <input value={providerNif} onChange={(e) => setProviderNif(e.target.value)}
+              placeholder="NIF / CIF (opcional)" className={inputCls} />
+            <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)}
+              placeholder="Jurisdicción" className={inputCls} />
           </div>
-          <input value={providerAddress} onChange={(e) => setProviderAddress(e.target.value)} placeholder="Domicilio (opcional)" className={inputCls} />
+          <input value={providerAddress} onChange={(e) => setProviderAddress(e.target.value)}
+            placeholder="Domicilio (opcional)" className={inputCls} />
         </div>
-
         <div className="space-y-2">
           <p className="text-xs font-medium text-secondary">Propiedad intelectual de los entregables</p>
           <div className="space-y-1.5">
@@ -124,16 +121,14 @@ function ContractModal({
             ))}
           </div>
         </div>
-
         {err && <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{err}</p>}
-
         <div className="flex gap-2 pt-1">
           <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-full text-sm text-secondary hover:border-gray-400 transition-colors">
             Cancelar
           </button>
           <button onClick={submit} disabled={loading}
             className="flex-1 py-2.5 bg-primary text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60">
-            {loading ? "Redactando..." : "Generar contrato →"}
+            {loading ? "Redactando contrato..." : "Generar contrato →"}
           </button>
         </div>
       </div>
@@ -152,6 +147,9 @@ export default function ProposalPage() {
   const [exporting, setExporting] = useState(false);
   const [template, setTemplate] = useState<PDFTemplateName>("classic");
   const [viewMode, setViewMode] = useState<"view" | "edit">("view");
+
+  // Per-section inline editing from view mode
+  const [editingSection, setEditingSection] = useState<string | null>(null);
 
   // Share
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -179,7 +177,9 @@ export default function ProposalPage() {
   }, [id, router]);
 
   useEffect(() => {
-    function handler() { setOpenMenu(null); }
+    function handler(e: MouseEvent) {
+      if (!(e.target as Element).closest("[data-ai-menu]")) setOpenMenu(null);
+    }
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
@@ -265,7 +265,12 @@ export default function ProposalPage() {
         body: JSON.stringify({ proposal_id: id, section_key: sectionKey, current_content: content[sectionKey], action }),
       });
       const data = await res.json();
-      if (data.content) handleChange(sectionKey, data.content);
+      if (data.content) {
+        handleChange(sectionKey, data.content);
+        // If triggered from view mode, keep editing open for that section
+        setEditingSection(sectionKey);
+        setViewMode("edit");
+      }
     } catch {
       alert("Error al procesar la sección.");
     } finally {
@@ -310,9 +315,11 @@ export default function ProposalPage() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Sticky navbar */}
+      {/* ── Sticky navbar ── */}
       <header className="border-b border-border bg-surface sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+
+          {/* Left: breadcrumb */}
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/dashboard" className="font-heading font-bold text-lg text-secondary tracking-tight flex-shrink-0">
               DealCraft
@@ -329,10 +336,12 @@ export default function ProposalPage() {
             )}
           </div>
 
+          {/* Right: actions */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
+
             {/* View / Edit toggle */}
-            <div className="flex bg-background border border-border rounded-full p-0.5 mr-1">
-              <button onClick={() => setViewMode("view")}
+            <div className="flex bg-background border border-border rounded-full p-0.5">
+              <button onClick={() => { setViewMode("view"); setEditingSection(null); }}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${viewMode === "view" ? "bg-surface text-secondary shadow-sm" : "text-muted hover:text-secondary"}`}>
                 Vista
               </button>
@@ -342,18 +351,32 @@ export default function ProposalPage() {
               </button>
             </div>
 
-            <button onClick={handleDuplicate} className="text-xs text-muted hover:text-secondary border border-border px-3 py-2 rounded-full transition-colors hidden sm:block">
-              Duplicar
-            </button>
-            <button onClick={handleShare} disabled={sharing} className="text-xs font-medium border border-border text-secondary px-3 py-2 rounded-full hover:border-gray-300 transition-colors disabled:opacity-50 hidden sm:block">
+            <button onClick={handleShare} disabled={sharing}
+              className="text-xs font-medium border border-border text-secondary px-3 py-2 rounded-full hover:border-gray-300 transition-colors disabled:opacity-50 hidden sm:block">
               {sharing ? "..." : "Compartir"}
             </button>
+
+            {/* ── Generar contrato — always visible ── */}
+            <button
+              onClick={() => setShowContractModal(true)}
+              className="text-xs font-medium border border-border text-secondary px-3 py-2 rounded-full hover:border-primary/50 hover:text-primary transition-colors flex items-center gap-1.5 hidden sm:flex"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2}>
+                <rect x="2" y="1" width="8" height="10" rx="1" />
+                <path strokeLinecap="round" d="M4 4h4M4 6h4M4 8h2" />
+              </svg>
+              Contrato
+            </button>
+
             {viewMode === "edit" && (
-              <button onClick={handleSave} disabled={saving} className="text-xs font-medium border border-border text-secondary px-4 py-2 rounded-full hover:border-gray-300 transition-colors disabled:opacity-50">
-                {saving ? "Guardando..." : saved ? "Guardado ✓" : "Guardar"}
+              <button onClick={handleSave} disabled={saving}
+                className="text-xs font-medium border border-border text-secondary px-3 py-2 rounded-full hover:border-gray-300 transition-colors disabled:opacity-50">
+                {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar"}
               </button>
             )}
-            <button onClick={handleExportPDF} disabled={exporting} className="text-xs font-medium bg-primary text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50">
+
+            <button onClick={handleExportPDF} disabled={exporting}
+              className="text-xs font-medium bg-primary text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50">
               {exporting ? "Generando..." : "Exportar PDF"}
             </button>
           </div>
@@ -362,7 +385,7 @@ export default function ProposalPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-10 space-y-6">
 
-        {/* Proposal header card */}
+        {/* Proposal header */}
         <div className="bg-surface border border-border rounded-2xl p-8">
           <p className="text-xs font-medium text-muted uppercase tracking-widest mb-2">Propuesta para</p>
           <h1 className="font-heading text-3xl font-bold text-secondary">
@@ -391,11 +414,56 @@ export default function ProposalPage() {
         {viewMode === "view" && (
           <div className="bg-surface border border-border rounded-2xl divide-y divide-border overflow-hidden">
             {activeSections.map((key, idx) => (
-              <div key={key} className="px-8 py-6">
-                <p className="text-xs font-semibold text-muted uppercase tracking-widest mb-4">
-                  {String(idx + 1).padStart(2, "0")} · {SECTION_LABELS[key] ?? key}
-                </p>
-                <SectionContent text={content[key]} />
+              <div key={key} className="relative px-8 py-7 group">
+                {/* Section label + AI button (always accessible) */}
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-widest">
+                    {String(idx + 1).padStart(2, "0")} · {SECTION_LABELS[key] ?? key}
+                  </p>
+
+                  {/* AI dropdown — visible in view mode */}
+                  <div className="relative" data-ai-menu>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === key ? null : key); }}
+                      disabled={sectionLoading === key}
+                      className="flex items-center gap-1.5 text-xs text-muted hover:text-primary border border-border hover:border-primary/50 bg-surface px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                      </svg>
+                      {sectionLoading === key ? "Procesando..." : "✦ IA"}
+                    </button>
+
+                    {openMenu === key && (
+                      <div className="absolute right-0 top-8 z-20 bg-surface border border-border rounded-xl shadow-elevated py-1 min-w-[170px]">
+                        {AI_ACTIONS.map((action) => (
+                          <button key={action.key} type="button"
+                            onClick={(e) => { e.stopPropagation(); handleSectionAction(key, action.key); }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-secondary hover:bg-background hover:text-primary transition-colors">
+                            {action.label}
+                          </button>
+                        ))}
+                        <div className="border-t border-border mt-1 pt-1">
+                          <button type="button"
+                            onClick={() => { setViewMode("edit"); setEditingSection(key); setOpenMenu(null); }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-muted hover:bg-background transition-colors">
+                            Editar manualmente →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {sectionLoading === key ? (
+                  <div className="flex items-center gap-2 py-4">
+                    <span className="text-primary animate-typing-dot text-base">✦</span>
+                    <span className="text-sm text-muted">Procesando con IA...</span>
+                  </div>
+                ) : (
+                  <SectionContent text={content[key]} />
+                )}
               </div>
             ))}
           </div>
@@ -405,27 +473,27 @@ export default function ProposalPage() {
         {viewMode === "edit" && (
           <div className="space-y-4">
             {activeSections.map((key) => (
-              <div key={key} className="bg-surface border border-border rounded-2xl p-6 space-y-3">
+              <div key={key} className={`bg-surface border rounded-2xl p-6 space-y-3 transition-colors ${editingSection === key ? "border-primary ring-2 ring-primary/10" : "border-border"}`}>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-secondary uppercase tracking-widest" htmlFor={key}>
                     {SECTION_LABELS[key] ?? key}
                   </label>
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <div className="relative" data-ai-menu>
                     <button type="button"
-                      onClick={() => setOpenMenu(openMenu === key ? null : key)}
+                      onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === key ? null : key); }}
                       disabled={sectionLoading === key}
-                      className="flex items-center gap-1 text-xs text-muted hover:text-primary border border-border hover:border-primary/40 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+                      className="flex items-center gap-1.5 text-xs text-muted hover:text-primary border border-border hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                       </svg>
-                      {sectionLoading === key ? "Procesando..." : "IA"}
+                      {sectionLoading === key ? "Procesando..." : "✦ IA"}
                     </button>
                     {openMenu === key && (
-                      <div className="absolute right-0 top-8 z-20 bg-surface border border-border rounded-xl shadow-lg py-1 min-w-[160px]">
+                      <div className="absolute right-0 top-8 z-20 bg-surface border border-border rounded-xl shadow-elevated py-1 min-w-[170px]">
                         {AI_ACTIONS.map((action) => (
                           <button key={action.key} type="button"
-                            onClick={() => handleSectionAction(key, action.key)}
-                            className="w-full text-left px-4 py-2 text-xs text-secondary hover:bg-background transition-colors">
+                            onClick={(e) => { e.stopPropagation(); handleSectionAction(key, action.key); }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-secondary hover:bg-background hover:text-primary transition-colors">
                             {action.label}
                           </button>
                         ))}
@@ -436,6 +504,7 @@ export default function ProposalPage() {
                 <textarea id={key} rows={7}
                   value={sectionLoading === key ? "Procesando con IA..." : content[key]}
                   onChange={(e) => handleChange(key, e.target.value)}
+                  onFocus={() => setEditingSection(key)}
                   disabled={sectionLoading === key}
                   className="w-full text-sm text-secondary leading-relaxed bg-background border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none disabled:opacity-50" />
               </div>
@@ -461,34 +530,36 @@ export default function ProposalPage() {
           </div>
         </div>
 
-        {/* Bottom actions */}
-        <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2 pb-10">
-          <div className="flex gap-3">
+        {/* ── Bottom CTA strip ── */}
+        <div className="bg-surface border border-border rounded-2xl p-6">
+          <p className="text-xs font-semibold text-secondary uppercase tracking-widest mb-4">Acciones</p>
+          <div className="flex flex-wrap gap-3">
+            <button onClick={handleDuplicate}
+              className="text-sm font-medium border border-border text-secondary px-5 py-2.5 rounded-full hover:border-gray-400 transition-colors">
+              Duplicar propuesta
+            </button>
             <button onClick={handleShare} disabled={sharing}
               className="text-sm font-medium border border-border text-secondary px-5 py-2.5 rounded-full hover:border-gray-400 transition-colors disabled:opacity-50">
-              {sharing ? "Generando enlace..." : "Compartir"}
+              {sharing ? "Generando enlace..." : "Compartir con cliente"}
             </button>
-            <button onClick={() => setShowContractModal(true)}
-              className="text-sm font-medium border border-secondary/20 text-secondary px-5 py-2.5 rounded-full hover:border-secondary/50 hover:bg-secondary/4 transition-colors flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 1h6M4 1v12h6V1M1 4h2M1 7h2M1 10h2M12 4h1M12 7h1M12 10h1" />
+            <button
+              onClick={() => setShowContractModal(true)}
+              className="text-sm font-medium bg-secondary text-white px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2}>
+                <rect x="2" y="1" width="10" height="12" rx="1.5" />
+                <path strokeLinecap="round" d="M4.5 5h5M4.5 7.5h5M4.5 10h3" />
               </svg>
-              Generar contrato
+              Generar contrato de prestación de servicios
             </button>
-          </div>
-          <div className="flex gap-3">
-            {viewMode === "edit" && (
-              <button onClick={handleSave} disabled={saving}
-                className="text-sm font-medium border-2 border-secondary/20 text-secondary px-5 py-2.5 rounded-full hover:border-secondary/50 transition-colors disabled:opacity-50">
-                {saving ? "Guardando..." : "Guardar cambios"}
-              </button>
-            )}
             <button onClick={handleExportPDF} disabled={exporting}
-              className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50">
+              className="text-sm font-medium bg-primary text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 ml-auto">
               {exporting ? "Generando PDF..." : "Exportar PDF"}
             </button>
           </div>
         </div>
+
+        <div className="pb-8" />
       </main>
 
       {/* Share modal */}
@@ -501,7 +572,7 @@ export default function ProposalPage() {
             </div>
             <div className="flex gap-2">
               <input readOnly value={shareUrl}
-                className="flex-1 px-3 py-2.5 rounded-lg border border-border bg-background text-xs text-secondary font-mono overflow-hidden" />
+                className="flex-1 px-3 py-2.5 rounded-lg border border-border bg-background text-xs text-secondary font-mono" />
               <button onClick={copyLink}
                 className="px-4 py-2.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0">
                 {copied ? "Copiado ✓" : "Copiar"}
@@ -521,7 +592,7 @@ export default function ProposalPage() {
         </div>
       )}
 
-      {/* Contract generation modal */}
+      {/* Contract modal */}
       {showContractModal && (
         <ContractModal
           clientName={proposal.client_name}
