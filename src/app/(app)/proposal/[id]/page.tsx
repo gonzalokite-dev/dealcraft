@@ -33,8 +33,9 @@ const STATUS_LABELS: Record<string, { label: string; class: string }> = {
   approved: { label: "Aprobada",  class: "bg-green-50 text-green-600" },
 };
 
-function SectionContent({ text }: { text: string }) {
-  const paragraphs = text.split(/\n{2,}/);
+function SectionContent({ text }: { text: unknown }) {
+  const str = typeof text === "string" ? text : text != null ? JSON.stringify(text) : "";
+  const paragraphs = str.split(/\n{2,}/);
   return (
     <div className="space-y-3">
       {paragraphs.map((para, pi) => {

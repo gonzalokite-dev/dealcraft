@@ -134,7 +134,11 @@ ${sectionsWithInstructions}
     const content = completion.choices[0].message.content;
     if (!content) throw new Error("La IA no devolvió contenido.");
 
-    const generated_content = JSON.parse(content);
+    const raw = JSON.parse(content);
+    // Normalize: ensure all section values are strings
+    const generated_content: Record<string, string> = Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [k, typeof v === "string" ? v : JSON.stringify(v)])
+    );
     return NextResponse.json({ generated_content });
   } catch (err) {
     console.error("Error generating proposal:", err);
