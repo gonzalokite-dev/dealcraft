@@ -75,12 +75,10 @@ export default function Pricing() {
     <section id="precios" className="py-24 sm:py-32 px-4 sm:px-6 bg-background">
       <div className="max-w-7xl mx-auto">
 
-        {/* Section label */}
         <p className="text-xs font-medium text-muted uppercase tracking-widest mb-6">
           04 — Precios
         </p>
 
-        {/* Heading */}
         <div className="grid lg:grid-cols-2 gap-8 mb-14 items-end">
           <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl text-secondary leading-tight">
             Simple.
@@ -92,36 +90,37 @@ export default function Pricing() {
           </p>
         </div>
 
-        {/* Plans grid */}
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-3 gap-5 items-start">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl border p-8 flex flex-col gap-7 €{
+              className={`rounded-2xl border p-8 flex flex-col gap-7 relative ${
                 plan.highlight
-                  ? "border-primary bg-surface shadow-elevated"
+                  ? "border-primary bg-surface shadow-elevated ring-2 ring-primary/10 md:-mt-4 md:pb-12"
                   : "border-border bg-surface"
               }`}
             >
+              {/* Most popular badge */}
+              {plan.highlight && plan.badge && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                  <span className="text-[11px] font-semibold text-white bg-primary px-4 py-1 rounded-full whitespace-nowrap shadow-sm">
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
+
               {/* Header */}
               <div className="space-y-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-heading font-semibold text-secondary text-xl">
-                    {plan.name}
-                  </span>
-                  {plan.highlight && plan.badge && (
-                    <span className="text-[10px] font-semibold text-primary bg-primary-50 border border-primary-100 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                      {plan.badge}
-                    </span>
-                  )}
-                </div>
+                <span className="font-heading font-semibold text-secondary text-xl">
+                  {plan.name}
+                </span>
                 <p className="text-xs text-muted leading-relaxed">{plan.description}</p>
               </div>
 
               {/* Price */}
               <div className="flex items-end gap-1">
                 <span className="font-heading text-5xl font-bold text-secondary leading-none">
-                  €{plan.price}
+                  ${plan.price}
                 </span>
                 <span className="text-sm text-muted mb-1 ml-1">{plan.period}</span>
               </div>
@@ -129,10 +128,10 @@ export default function Pricing() {
               {/* CTA */}
               <Link
                 href={plan.href}
-                className={`text-sm font-medium py-3 px-5 rounded-full text-center transition-all hover:scale-[1.02] active:scale-[0.98] €{
+                className={`text-sm font-medium py-3 px-5 rounded-full text-center transition-all hover:scale-[1.02] active:scale-[0.98] ${
                   plan.highlight
                     ? "bg-primary text-white hover:bg-blue-700 shadow-sm"
-                    : "border-2 border-secondary/20 text-secondary hover:border-secondary/50"
+                    : "border-2 border-secondary/15 text-secondary hover:border-secondary/40 hover:bg-secondary/4"
                 }`}
               >
                 {plan.cta}
@@ -158,6 +157,11 @@ export default function Pricing() {
             </div>
           ))}
         </div>
+
+        {/* Bottom note */}
+        <p className="text-center text-xs text-muted mt-10">
+          Todos los planes incluyen SSL, backups automáticos y actualizaciones sin costo adicional.
+        </p>
       </div>
     </section>
   );

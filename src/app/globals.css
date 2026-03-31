@@ -36,3 +36,41 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes float-alt {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer-bar {
+  0% { width: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  70% { width: 78%; }
+  100% { width: 78%; }
+}
+
+@keyframes typing-dot {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-alt {
+  animation: float-alt 5.5s ease-in-out infinite 2s;
+}
+
+.animate-shimmer-bar {
+  animation: shimmer-bar 3s ease-out infinite 0.5s;
+}
+
+.animate-typing-dot {
+  animation: typing-dot 1.2s ease-in-out infinite;
+}

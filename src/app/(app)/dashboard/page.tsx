@@ -16,13 +16,20 @@ export default async function DashboardPage() {
 
   const { data: proposals } = await supabase
     .from("proposals")
-    .select("id, client_name, client_company, service_type, created_at")
+    .select("id, client_name, client_company, service_type, created_at, status")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   const proposalCount = proposals?.length ?? 0;
   const isFree = profile?.plan === "free";
   const atLimit = isFree && proposalCount >= 3;
+
+  const STATUS_STYLES: Record<string, { label: string; class: string }> = {
+    draft:    { label: "Borrador",  class: "bg-gray-100 text-gray-500" },
+    sent:     { label: "Enviada",   class: "bg-blue-50 text-blue-600" },
+    viewed:   { label: "Vista",     class: "bg-amber-50 text-amber-600" },
+    approved: { label: "Aprobada",  class: "bg-green-50 text-green-600" },
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,6 +42,9 @@ export default async function DashboardPage() {
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted hidden sm:block">{user.email}</span>
+            <Link href="/settings" className="text-xs text-muted hover:text-secondary transition-colors">
+              Configuración
+            </Link>
             <form action="/api/auth/signout" method="POST">
               <button className="text-xs text-muted hover:text-secondary transition-colors">
                 Cerrar sesión
@@ -109,10 +119,18 @@ export default async function DashboardPage() {
                       <p className="text-xs text-muted mt-0.5">{p.client_company}</p>
                     )}
                   </div>
-                  <span className="text-xs text-muted border border-border rounded-full px-2.5 py-1 flex-shrink-0">
-                    {p.service_type}
-                  </span>
+                  {(() => {
+                    const s = STATUS_STYLES[p.status ?? "draft"];
+                    return (
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
+                        {s.label}
+                      </span>
+                    );
+                  })()}
                 </div>
+                <p className="text-xs text-muted mb-2">
+                  {p.service_type}
+                </p>
                 <p className="text-xs text-muted">
                   {new Date(p.created_at).toLocaleDateString("es-ES", {
                     day: "numeric",

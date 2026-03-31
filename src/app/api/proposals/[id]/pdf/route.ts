@@ -7,11 +7,13 @@ import { createClient } from "@/lib/supabase/server";
 import { ProposalPDF } from "@/lib/pdf/ProposalPDF";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const template = (searchParams.get("template") ?? "classic") as import("@/lib/pdf/ProposalPDF").PDFTemplateName;
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,6 +48,7 @@ export async function GET(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfElement = createElement(ProposalPDF as any, {
+      template,
       clientName: proposal.client_name,
       clientCompany: proposal.client_company ?? undefined,
       serviceType: proposal.service_type,

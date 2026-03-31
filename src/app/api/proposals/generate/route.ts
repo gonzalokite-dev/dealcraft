@@ -1,53 +1,92 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import {
+  TONE_LABELS,
+  LENGTH_LABELS,
+  LANGUAGE_LABELS,
+  PROPOSAL_TYPE_LABELS,
+  SECTION_INSTRUCTIONS,
+  SECTIONS_BY_TYPE,
+} from "@/lib/proposals/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(request: Request) {
   try {
-    const { client_name, client_company, service_type, description, goals, timeline, price } =
-      await request.json();
+    const {
+      client_name,
+      client_company,
+      service_type,
+      description,
+      goals,
+      timeline,
+      price,
+      proposal_type,
+      sector,
+      sector_custom,
+      tone,
+      length,
+      language,
+      sections,
+    } = await request.json();
 
     if (!client_name || !service_type || !description || !goals || !timeline) {
       return NextResponse.json({ error: "Faltan campos obligatorios." }, { status: 400 });
     }
 
-    const clientLabel = client_company ? `${client_name} de ${client_company}` : client_name;
-    const pricingLine = price ? `El precio propuesto es ${price}.` : "No se ha definido un precio.";
+    // Use sections from form, or auto-determine by proposal_type
+    const activeSections: string[] =
+      Array.isArray(sections) && sections.length > 0
+        ? sections
+        : SECTIONS_BY_TYPE[proposal_type] ?? SECTIONS_BY_TYPE["proyecto_puntual"];
 
-    const prompt = `Eres un consultor B2B senior con 15 años de experiencia cerrando proyectos de alto valor. Tu trabajo es redactar propuestas profesionales, persuasivas y orientadas al cierre.
+    const clientLabel = client_company
+      ? `${client_name} (${client_company})`
+      : client_name;
 
-Genera una propuesta completa para el siguiente proyecto:
+    const sectorLabel =
+      sector === "Otro" ? sector_custom || "Sector no especificado" : sector;
 
+    const pricingLine = price
+      ? `El precio propuesto es ${price}.`
+      : "El precio se definirá en la conversación con el cliente.";
+
+    const sectionsWithInstructions = activeSections
+      .map((s) => `  "${s}": "${SECTION_INSTRUCTIONS[s] ?? "Contenido relevante para esta sección."}"`)
+      .join(",\n");
+
+    const prompt = `Eres un consultor B2B senior especializado en redactar propuestas comerciales de alto valor para freelancers y consultores. Tu objetivo es cerrar proyectos.
+
+CONTEXTO DEL PROYECTO:
 - Cliente: ${clientLabel}
-- Tipo de servicio: ${service_type}
-- Descripción del proyecto: ${description}
+- Sector: ${sectorLabel ?? "No especificado"}
+- Tipo de propuesta: ${PROPOSAL_TYPE_LABELS[proposal_type] ?? proposal_type ?? "No especificado"}
+- Servicio: ${service_type}
+- Descripción: ${description}
 - Objetivos del cliente: ${goals}
 - Cronograma: ${timeline}
 - Precio: ${pricingLine}
 
-Instrucciones de tono y estilo:
-- Profesional, conciso y persuasivo
-- Habla directamente al cliente en segunda persona (tú/usted)
-- Enfócate en el valor y los resultados, no en las tareas
-- Cada sección debe ser sustancial pero no excesiva (2-4 párrafos o puntos)
-- No uses lenguaje genérico de relleno
+INSTRUCCIONES DE ESTILO:
+- Idioma: Escribe TODA la propuesta en ${LANGUAGE_LABELS[language] ?? "Español"}.
+- Tono: ${TONE_LABELS[tone] ?? "Profesional y directo."}
+- Extensión por sección: ${LENGTH_LABELS[length] ?? "2-3 párrafos por sección."}
+- No uses lenguaje genérico o de relleno. Cada frase debe aportar valor.
+- Habla directamente al cliente. Enfócate en sus resultados, no en las tareas.
 
-Devuelve ÚNICAMENTE un objeto JSON válido con esta estructura exacta (sin markdown, sin texto extra):
+SECCIONES REQUERIDAS:
+Genera ÚNICAMENTE las siguientes ${activeSections.length} secciones.
+Devuelve ÚNICAMENTE un objeto JSON válido. Sin markdown, sin texto extra, sin explicaciones.
+Las claves deben ser exactamente las indicadas:
 {
-  "introduction": "Párrafo de introducción que conecta con el cliente y establece credibilidad",
-  "problem": "Descripción del problema o necesidad del cliente, mostrando que lo entendemos a fondo",
-  "solution": "Nuestra solución propuesta, explicada de forma clara y enfocada en resultados",
-  "deliverables": "Lista clara de entregables concretos del proyecto",
-  "timeline": "Desglose del cronograma por fases o hitos",
-  "pricing": "Detalle del precio y lo que incluye (o mensaje de que se definirá en conversación si no hay precio)",
-  "cta": "Párrafo de cierre persuasivo con llamada a la acción clara"
+${sectionsWithInstructions}
 }`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
+      max_tokens: 4000,
       response_format: { type: "json_object" },
     });
 
