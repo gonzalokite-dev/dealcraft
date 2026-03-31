@@ -42,22 +42,13 @@ function formatDate(iso: string) {
   });
 }
 
-function ProposalIcon() {
+function StatCard({ value, label, sub }: { value: string | number; label: string; sub?: string }) {
   return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={1.5}>
-      <rect x="2" y="1" width="12" height="14" rx="2" />
-      <path strokeLinecap="round" d="M5 5h6M5 8h6M5 11h4" />
-    </svg>
-  );
-}
-
-function ContractIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={1.5}>
-      <rect x="2" y="1" width="12" height="14" rx="2" />
-      <path strokeLinecap="round" d="M5 5h6M5 8h6M5 11h2" />
-      <path strokeLinecap="round" d="M10 12l1.5 1.5L14 11" />
-    </svg>
+    <div className="bg-surface border border-border rounded-xl px-5 py-4">
+      <p className="font-heading text-2xl font-bold text-secondary">{value}</p>
+      <p className="text-xs font-medium text-secondary mt-0.5">{label}</p>
+      {sub && <p className="text-xs text-muted mt-0.5">{sub}</p>}
+    </div>
   );
 }
 
@@ -71,6 +62,9 @@ export default function DashboardClient({ proposals: initialProposals, contracts
   const isFree = profile?.plan === "free";
   const proposalCount = proposals.length;
   const atLimit = isFree && proposalCount >= 3;
+  const approvedCount = proposals.filter(p => p.status === "approved").length;
+  const sentCount = proposals.filter(p => p.status === "sent" || p.status === "viewed").length;
+  const conversionRate = proposalCount > 0 ? Math.round((approvedCount / proposalCount) * 100) : 0;
 
   async function deleteProposal(id: string) {
     setDeleting(true);
@@ -94,47 +88,37 @@ export default function DashboardClient({ proposals: initialProposals, contracts
     }
   }
 
-  const greeting = profile?.business_name
-    ? `Hola, ${profile.business_name.split(" ")[0]}`
-    : "Mi espacio de trabajo";
+  const firstName = profile?.business_name?.split(" ")[0] ?? null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
 
       {/* Navbar */}
-      <header className="border-b border-border bg-surface">
+      <header className="border-b border-border bg-surface flex-shrink-0">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-heading font-bold text-lg text-secondary tracking-tight">
             DealCraft
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted hidden sm:block">{userEmail}</span>
-            <Link href="/settings" className="text-xs text-muted hover:text-secondary transition-colors">
-              Ajustes
-            </Link>
+            <Link href="/settings" className="text-xs text-muted hover:text-secondary transition-colors">Ajustes</Link>
             <form action="/api/auth/signout" method="POST">
-              <button className="text-xs text-muted hover:text-secondary transition-colors">
-                Cerrar sesión
-              </button>
+              <button className="text-xs text-muted hover:text-secondary transition-colors">Cerrar sesión</button>
             </form>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-6 py-10 flex-1 w-full">
 
         {/* Page header */}
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-secondary">{greeting}</h1>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-secondary">
+              {firstName ? `Hola, ${firstName}` : "Mi espacio de trabajo"}
+            </h1>
             <p className="text-muted text-sm mt-1">
-              {tab === "proposals"
-                ? proposalCount === 0
-                  ? "Crea tu primera propuesta en menos de 5 minutos."
-                  : `${proposalCount} propuesta${proposalCount !== 1 ? "s" : ""} · ${proposals.filter(p => p.status === "approved").length} aprobada${proposals.filter(p => p.status === "approved").length !== 1 ? "s" : ""}`
-                : contracts.length === 0
-                  ? "Genera contratos profesionales a partir de tus propuestas."
-                  : `${contracts.length} contrato${contracts.length !== 1 ? "s" : ""}`}
+              Gestiona tus propuestas y contratos desde un solo lugar.
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
@@ -165,18 +149,26 @@ export default function DashboardClient({ proposals: initialProposals, contracts
           </div>
         </div>
 
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          <StatCard value={proposalCount} label="Propuestas" sub="en total" />
+          <StatCard value={approvedCount} label="Aprobadas" sub={sentCount > 0 ? `${sentCount} en seguimiento` : "enviadas al cliente"} />
+          <StatCard value={`${conversionRate}%`} label="Conversión" sub="propuestas aprobadas" />
+          <StatCard value={contracts.length} label="Contratos" sub="generados" />
+        </div>
+
         {/* Free plan banner */}
-        {isFree && tab === "proposals" && proposalCount > 0 && (
+        {isFree && proposalCount > 0 && (
           <div className="bg-primary-50 border border-primary-100 rounded-xl px-5 py-4 flex items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 2a6 6 0 100 12A6 6 0 008 2zM8 5v4M8 10v1" />
                 </svg>
               </div>
               <p className="text-sm text-secondary">
                 Plan Free — <span className="font-semibold">{proposalCount} de 3</span> propuestas usadas.
-                {atLimit && <span className="text-red-500 ml-1">Has alcanzado el límite.</span>}
+                {atLimit && <span className="text-red-500 ml-1.5 font-medium">Límite alcanzado.</span>}
               </p>
             </div>
             <Link href="/signup?plan=pro" className="text-xs font-semibold text-primary hover:underline flex-shrink-0">
@@ -192,7 +184,15 @@ export default function DashboardClient({ proposals: initialProposals, contracts
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 tab === t ? "border-primary text-primary" : "border-transparent text-muted hover:text-secondary"
               }`}>
-              {t === "proposals" ? <ProposalIcon /> : <ContractIcon />}
+              {t === "proposals" ? (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={1.8}>
+                  <rect x="2" y="1" width="10" height="12" rx="1.5" /><path strokeLinecap="round" d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={1.8}>
+                  <rect x="2" y="1" width="10" height="12" rx="1.5" /><path strokeLinecap="round" d="M4.5 4.5h5M4.5 7h5M4.5 9.5h2" /><path strokeLinecap="round" d="M8.5 11l1 1 2-2" />
+                </svg>
+              )}
               {t === "proposals" ? "Propuestas" : "Contratos"}
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === t ? "bg-primary/10 text-primary" : "bg-gray-100 text-muted"}`}>
                 {t === "proposals" ? proposals.length : contracts.length}
@@ -210,7 +210,6 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                 const isConfirming = confirmDelete === p.id;
                 return (
                   <div key={p.id} className="relative bg-surface border border-border rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-card transition-all group">
-
                     {!isConfirming && (
                       <button onClick={(e) => { e.preventDefault(); setConfirmDelete(p.id); }}
                         className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all z-10"
@@ -220,7 +219,6 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                         </svg>
                       </button>
                     )}
-
                     {isConfirming && (
                       <div className="absolute inset-0 bg-surface rounded-2xl border border-red-200 flex flex-col items-center justify-center gap-3 p-4 z-10">
                         <p className="text-sm font-medium text-secondary text-center">¿Eliminar esta propuesta?</p>
@@ -237,36 +235,28 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                         </div>
                       </div>
                     )}
-
                     <Link href={`/proposal/${p.id}`} className="block">
-                      {/* Card top accent */}
                       <div className="h-1 w-full bg-gradient-to-r from-primary/40 to-primary/10" />
                       <div className="p-6">
-                        <div className="flex items-start justify-between gap-2 mb-4 pr-6">
+                        <div className="flex items-start justify-between gap-2 mb-3 pr-6">
                           <div className="min-w-0">
                             <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors truncate">
                               {p.client_name}
                             </p>
-                            {p.client_company && (
-                              <p className="text-xs text-muted mt-0.5 truncate">{p.client_company}</p>
-                            )}
+                            {p.client_company && <p className="text-xs text-muted mt-0.5 truncate">{p.client_company}</p>}
                           </div>
-                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
-                            {s.label}
-                          </span>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>{s.label}</span>
                         </div>
-                        <p className="text-xs text-muted mb-1 truncate">{p.service_type}</p>
+                        <p className="text-xs text-muted truncate mb-1">{p.service_type}</p>
                         <p className="text-xs text-muted/60">{formatDate(p.created_at)}</p>
                       </div>
                     </Link>
                   </div>
                 );
               })}
-
-              {/* New proposal CTA card */}
               {!atLimit && (
                 <Link href="/proposal/new"
-                  className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[140px]">
+                  className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[130px]">
                   <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
                     <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12M4 10h12" />
@@ -296,7 +286,6 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                 const isConfirming = confirmDelete === c.id;
                 return (
                   <div key={c.id} className="relative bg-surface border border-border rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-card transition-all group">
-
                     {!isConfirming && (
                       <button onClick={(e) => { e.preventDefault(); setConfirmDelete(c.id); }}
                         className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all z-10"
@@ -306,7 +295,6 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                         </svg>
                       </button>
                     )}
-
                     {isConfirming && (
                       <div className="absolute inset-0 bg-surface rounded-2xl border border-red-200 flex flex-col items-center justify-center gap-3 p-4 z-10">
                         <p className="text-sm font-medium text-secondary text-center">¿Eliminar este contrato?</p>
@@ -323,22 +311,17 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                         </div>
                       </div>
                     )}
-
                     <Link href={`/contract/${c.id}`} className="block">
                       <div className="h-1 w-full bg-gradient-to-r from-secondary/30 to-secondary/10" />
                       <div className="p-6">
-                        <div className="flex items-start justify-between gap-2 mb-4 pr-6">
+                        <div className="flex items-start justify-between gap-2 mb-3 pr-6">
                           <div className="min-w-0">
                             <p className="font-heading font-semibold text-secondary text-base group-hover:text-primary transition-colors truncate">
                               {c.client_name}
                             </p>
-                            {c.client_company && (
-                              <p className="text-xs text-muted mt-0.5 truncate">{c.client_company}</p>
-                            )}
+                            {c.client_company && <p className="text-xs text-muted mt-0.5 truncate">{c.client_company}</p>}
                           </div>
-                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>
-                            {s.label}
-                          </span>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${s.class}`}>{s.label}</span>
                         </div>
                         <p className="text-xs text-muted mb-1">{CONTRACT_TYPE_LABELS[c.contract_type] ?? c.contract_type}</p>
                         <p className="text-xs text-muted/60">{formatDate(c.created_at)}</p>
@@ -347,9 +330,8 @@ export default function DashboardClient({ proposals: initialProposals, contracts
                   </div>
                 );
               })}
-
               <Link href="/contract/new"
-                className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[140px]">
+                className="bg-surface border border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/2 transition-all group min-h-[130px]">
                 <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
                   <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12M4 10h12" />
@@ -361,13 +343,30 @@ export default function DashboardClient({ proposals: initialProposals, contracts
           ) : (
             <EmptyState
               title="Sin contratos aún"
-              description="Genera contratos de prestación de servicios directamente desde tus propuestas."
+              description="Genera contratos de prestación de servicios directamente desde tus propuestas o desde cero."
               cta="Crear contrato"
               href="/contract/new"
             />
           )
         )}
       </main>
+
+      {/* Dashboard footer */}
+      <footer className="border-t border-border bg-surface mt-12">
+        <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-6">
+            <span className="font-heading font-bold text-sm text-secondary">DealCraft</span>
+            <nav className="flex items-center gap-4">
+              <Link href="/proposal/new" className="text-xs text-muted hover:text-secondary transition-colors">Nueva propuesta</Link>
+              <Link href="/contract/new" className="text-xs text-muted hover:text-secondary transition-colors">Nuevo contrato</Link>
+              <Link href="/settings" className="text-xs text-muted hover:text-secondary transition-colors">Ajustes de marca</Link>
+            </nav>
+          </div>
+          <p className="text-xs text-muted/60">
+            © {new Date().getFullYear()} DealCraft · Hecho para autónomos y empresas de servicios
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
