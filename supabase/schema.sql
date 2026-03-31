@@ -28,12 +28,27 @@ create table if not exists public.proposals (
   created_at        timestamptz default now()
 );
 
+-- Tabla: contracts
+create table if not exists public.contracts (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references public.profiles(id) on delete cascade,
+  client_name       text not null,
+  client_company    text,
+  client_email      text,
+  contract_type     text not null,
+  input_data        jsonb not null default '{}',
+  generated_content text not null default '',
+  status            text default 'draft' check (status in ('draft', 'sent', 'signed')),
+  created_at        timestamptz default now()
+);
+
 -- ============================================================
 -- Row Level Security
 -- ============================================================
 
 alter table public.profiles enable row level security;
 alter table public.proposals enable row level security;
+alter table public.contracts enable row level security;
 
 -- Policies: profiles
 create policy "Users can view their own profile"
@@ -60,6 +75,12 @@ create policy "Users can update their own proposals"
 create policy "Users can delete their own proposals"
   on public.proposals for delete
   using (auth.uid() = user_id);
+
+-- Policies: contracts
+create policy "Users can manage their own contracts"
+  on public.contracts for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 -- ============================================================
 -- Trigger: crear perfil automáticamente al registrarse

@@ -103,6 +103,42 @@ export const SECTIONS_BY_TYPE: Record<string, string[]> = {
   colaboracion: ["introduction", "problem", "solution", "methodology", "deliverables", "timeline", "cta"],
 };
 
+// ============================================================
+// Contracts
+// ============================================================
+
+export const CONTRACT_TYPES = [
+  { value: "prestacion_servicios", label: "Prestación de servicios" },
+  { value: "desarrollo_software",  label: "Desarrollo de software" },
+  { value: "consultoria",          label: "Consultoría" },
+  { value: "diseno_creatividad",   label: "Diseño y creatividad" },
+  { value: "marketing",            label: "Marketing y comunicación" },
+  { value: "mantenimiento",        label: "Mantenimiento y soporte" },
+];
+
+export const CONTRACT_TYPE_LABELS: Record<string, string> = {
+  prestacion_servicios: "Contrato de Prestación de Servicios Profesionales",
+  desarrollo_software:  "Contrato de Desarrollo de Software",
+  consultoria:          "Contrato de Consultoría",
+  diseno_creatividad:   "Contrato de Servicios de Diseño y Creatividad",
+  marketing:            "Contrato de Servicios de Marketing y Comunicación",
+  mantenimiento:        "Contrato de Mantenimiento y Soporte",
+};
+
+export const IP_OWNERSHIP_OPTIONS = [
+  { value: "cliente",    label: "El cliente",          desc: "Los derechos pasan al cliente al pagar" },
+  { value: "prestador",  label: "El prestador",         desc: "Licencia de uso, no propiedad" },
+  { value: "compartida", label: "Compartida al 50%",    desc: "Ambas partes son cotitulares" },
+];
+
+export const CONTRACT_STATUS_LABELS: Record<string, { label: string; class: string }> = {
+  draft:  { label: "Borrador", class: "bg-gray-100 text-gray-500" },
+  sent:   { label: "Enviado",  class: "bg-blue-50 text-blue-600" },
+  signed: { label: "Firmado",  class: "bg-green-50 text-green-600" },
+};
+
+// ============================================================
+
 export const SECTION_INSTRUCTIONS: Record<string, string> = {
   introduction: "Párrafo de apertura que conecta con el cliente, establece contexto y genera confianza.",
   problem: "Análisis profundo del problema o necesidad del cliente. Demuestra comprensión.",

@@ -25,7 +25,28 @@
       "Bash(node -e \"const pkg = require\\(''./node_modules/next/package.json''\\); console.log\\(''next version:'', pkg.version\\);\")",
       "Bash(node -e \":*)",
       "Bash(xargs grep:*)",
-      "Bash(echo \"TSC EXIT: $?\")"
+      "Bash(echo \"TSC EXIT: $?\")",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(app\\)\")",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(auth\\)\")",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(app\\)/proposal\")",
+      "Bash(ls \"C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr/src/app/\\(app\\)/settings\")",
+      "Bash(find 'C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr' -type f -name *.ts -o -name *.tsx -o -name *.json -o -name *.env* -o -name *.config.*)",
+      "Bash(find 'C:/Users/GonzaloBenavidesLópe/OneDrive - Benavides Asociados/Escritorio/PROYECTOS/Proposr' -maxdepth 3 -not -path */node_modules/* -not -path */.next/* -type f)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel --yes)",
+      "Bash(vercel link:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel --prod --yes --scope gonzalokite-1954s-projects)",
+      "Bash(vercel logs:*)",
+      "WebFetch(domain:stitch.withgoogle.com)",
+      "WebFetch(domain:skills.sh)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:21st.dev)",
+      "Bash(uipro init:*)",
+      "Bash(curl -s \"https://stitch.withgoogle.com/docs/mcp/setup\")",
+      "Bash(curl -s \"https://stitch.withgoogle.com/docs/mcp\")",
+      "Bash(ls:*)",
+      "Bash(npx next:*)"
     ]
   }
 }

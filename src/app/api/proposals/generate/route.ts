@@ -19,8 +19,10 @@ export async function POST(request: Request) {
       service_type,
       description,
       goals,
+      specific_deliverables,
       timeline,
       price,
+      payment_terms,
       proposal_type,
       sector,
       sector_custom,
@@ -48,8 +50,12 @@ export async function POST(request: Request) {
       sector === "Otro" ? sector_custom || "Sector no especificado" : sector;
 
     const pricingLine = price
-      ? `El precio propuesto es ${price}.`
+      ? `El precio propuesto es ${price}.${payment_terms ? ` Condiciones de pago: ${payment_terms}.` : ""}`
       : "El precio se definirá en la conversación con el cliente.";
+
+    const deliverablesLine = specific_deliverables
+      ? `\n- Entregables específicos:\n${specific_deliverables}`
+      : "";
 
     const sectionsWithInstructions = activeSections
       .map((s) => `  "${s}": "${SECTION_INSTRUCTIONS[s] ?? "Contenido relevante para esta sección."}"`)
@@ -63,7 +69,7 @@ CONTEXTO DEL PROYECTO:
 - Tipo de propuesta: ${PROPOSAL_TYPE_LABELS[proposal_type] ?? proposal_type ?? "No especificado"}
 - Servicio: ${service_type}
 - Descripción: ${description}
-- Objetivos del cliente: ${goals}
+- Objetivos del cliente: ${goals}${deliverablesLine}
 - Cronograma: ${timeline}
 - Precio: ${pricingLine}
 

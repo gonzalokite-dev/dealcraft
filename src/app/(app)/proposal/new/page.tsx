@@ -15,13 +15,17 @@ import {
 interface FormData {
   client_name: string;
   client_company: string;
+  client_email: string;
   proposal_type: string;
   sector: string;
+  sector_custom: string;
   service_type: string;
   description: string;
   goals: string;
+  specific_deliverables: string;
   timeline: string;
   price: string;
+  payment_terms: string;
   tone: string;
   length: string;
   language: string;
@@ -30,13 +34,17 @@ interface FormData {
 const initialForm: FormData = {
   client_name: "",
   client_company: "",
+  client_email: "",
   proposal_type: "proyecto_puntual",
   sector: "",
+  sector_custom: "",
   service_type: "",
   description: "",
   goals: "",
+  specific_deliverables: "",
   timeline: "",
   price: "",
+  payment_terms: "",
   tone: "formal_ejecutivo",
   length: "estandar",
   language: "es",
@@ -166,7 +174,6 @@ export default function NewProposalPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Navbar */}
       <header className="border-b border-border bg-surface flex-shrink-0">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/dashboard" className="font-heading font-bold text-lg text-secondary tracking-tight">
@@ -178,7 +185,6 @@ export default function NewProposalPage() {
         </div>
       </header>
 
-      {/* Progress bar */}
       <div className="h-1 bg-border flex-shrink-0">
         <div
           className="h-full bg-primary transition-all duration-500 ease-out"
@@ -189,7 +195,6 @@ export default function NewProposalPage() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-xl">
 
-          {/* Step indicator */}
           <p className="text-xs text-muted mb-2 text-center tracking-widest uppercase">
             Paso {step} de {TOTAL_STEPS}
           </p>
@@ -199,7 +204,7 @@ export default function NewProposalPage() {
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="font-heading text-2xl font-bold text-secondary">¿Para quién es esta propuesta?</h1>
-                <p className="text-sm text-muted">Indica el nombre del cliente al que va dirigida</p>
+                <p className="text-sm text-muted">Indica los datos del cliente al que va dirigida</p>
               </div>
               <div className="space-y-3">
                 <input
@@ -208,7 +213,7 @@ export default function NewProposalPage() {
                   autoFocus
                   value={form.client_name}
                   onChange={handleInputChange}
-                  placeholder="Nombre del cliente"
+                  placeholder="Nombre del cliente *"
                   className={inputClass}
                   onKeyDown={(e) => e.key === "Enter" && next()}
                 />
@@ -218,6 +223,15 @@ export default function NewProposalPage() {
                   value={form.client_company}
                   onChange={handleInputChange}
                   placeholder="Empresa (opcional)"
+                  className={inputClass}
+                  onKeyDown={(e) => e.key === "Enter" && next()}
+                />
+                <input
+                  name="client_email"
+                  type="email"
+                  value={form.client_email}
+                  onChange={handleInputChange}
+                  placeholder="Email del cliente (opcional)"
                   className={inputClass}
                   onKeyDown={(e) => e.key === "Enter" && next()}
                 />
@@ -233,7 +247,6 @@ export default function NewProposalPage() {
                 <p className="text-sm text-muted">Esto ayuda a la IA a estructurar la propuesta correctamente</p>
               </div>
 
-              {/* Tipo de propuesta */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {PROPOSAL_TYPES.map((t) => (
                   <button
@@ -254,7 +267,6 @@ export default function NewProposalPage() {
                 ))}
               </div>
 
-              {/* Sector */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-secondary">Sector</label>
                 <div className="flex flex-wrap gap-2">
@@ -273,15 +285,26 @@ export default function NewProposalPage() {
                     </button>
                   ))}
                 </div>
+                {form.sector === "Otro" && (
+                  <input
+                    name="sector_custom"
+                    type="text"
+                    autoFocus
+                    value={form.sector_custom}
+                    onChange={handleInputChange}
+                    placeholder="Especifica el sector..."
+                    className={inputClass}
+                  />
+                )}
               </div>
 
-              {/* Tipo de servicio */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">¿Qué servicio ofreces? <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium text-secondary">
+                  ¿Qué servicio ofreces? <span className="text-red-400">*</span>
+                </label>
                 <input
                   name="service_type"
                   type="text"
-                  autoFocus
                   value={form.service_type}
                   onChange={handleInputChange}
                   placeholder="Ej. Diseño web, Consultoría de marketing, Desarrollo de app..."
@@ -301,10 +324,12 @@ export default function NewProposalPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Descripción del proyecto <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium text-secondary">
+                  Descripción del proyecto <span className="text-red-400">*</span>
+                </label>
                 <textarea
                   name="description"
-                  rows={5}
+                  rows={4}
                   autoFocus
                   value={form.description}
                   onChange={handleInputChange}
@@ -314,13 +339,30 @@ export default function NewProposalPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-secondary">Objetivos del cliente <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium text-secondary">
+                  Objetivos del cliente <span className="text-red-400">*</span>
+                </label>
                 <textarea
                   name="goals"
                   rows={3}
                   value={form.goals}
                   onChange={handleInputChange}
                   placeholder="¿Qué resultados espera lograr el cliente con este proyecto?"
+                  className={textareaClass}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-secondary">
+                  Entregables específicos{" "}
+                  <span className="text-muted font-normal">(opcional, pero mejora la precisión)</span>
+                </label>
+                <textarea
+                  name="specific_deliverables"
+                  rows={3}
+                  value={form.specific_deliverables}
+                  onChange={handleInputChange}
+                  placeholder="Ej. &#x0a;- Web de 5 páginas responsive&#x0a;- Panel de administración&#x0a;- Integración con pasarela de pago&#x0a;- 1 mes de soporte post-lanzamiento"
                   className={textareaClass}
                 />
               </div>
@@ -332,13 +374,14 @@ export default function NewProposalPage() {
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="font-heading text-2xl font-bold text-secondary">Últimos detalles</h1>
-                <p className="text-sm text-muted">Cronograma, precio y cómo debe sonar la propuesta</p>
+                <p className="text-sm text-muted">Cronograma, precio, condiciones y cómo debe sonar la propuesta</p>
               </div>
 
-              {/* Cronograma + Precio */}
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">Cronograma <span className="text-red-400">*</span></label>
+                  <label className="text-xs font-medium text-secondary">
+                    Cronograma <span className="text-red-400">*</span>
+                  </label>
                   <input
                     name="timeline"
                     type="text"
@@ -350,7 +393,9 @@ export default function NewProposalPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-secondary">Precio <span className="text-muted font-normal">(opcional)</span></label>
+                  <label className="text-xs font-medium text-secondary">
+                    Precio <span className="text-muted font-normal">(opcional)</span>
+                  </label>
                   <input
                     name="price"
                     type="text"
@@ -362,7 +407,20 @@ export default function NewProposalPage() {
                 </div>
               </div>
 
-              {/* Tono */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-secondary">
+                  Condiciones de pago <span className="text-muted font-normal">(opcional)</span>
+                </label>
+                <input
+                  name="payment_terms"
+                  type="text"
+                  value={form.payment_terms}
+                  onChange={handleInputChange}
+                  placeholder="Ej. 50% al inicio, 50% a la entrega. Factura mensual..."
+                  className={inputClass}
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-xs font-medium text-secondary">Tono de la propuesta</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -386,7 +444,6 @@ export default function NewProposalPage() {
                 </div>
               </div>
 
-              {/* Longitud + Idioma */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-secondary">Longitud</label>
@@ -410,7 +467,7 @@ export default function NewProposalPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-secondary">Idioma</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {LANGUAGES.map((l) => (
                       <button
                         key={l.value}
@@ -431,14 +488,12 @@ export default function NewProposalPage() {
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <p className="mt-4 text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
               {error}
             </p>
           )}
 
-          {/* Navigation */}
           <div className="mt-8 flex gap-3">
             {step > 1 && (
               <button
