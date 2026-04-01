@@ -156,6 +156,9 @@ export default function ProposalPage() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   // AI editing
   const [sectionLoading, setSectionLoading] = useState<string | null>(null);
@@ -238,13 +241,36 @@ export default function ProposalPage() {
   async function handleShare() {
     setSharing(true);
     try {
-      const res = await fetch(`/api/proposals/${id}/share`, { method: "POST" });
+      const res = await fetch(`/api/proposals/${id}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const data = await res.json();
-      if (data.url) setShareUrl(data.url);
+      if (data.url) {
+        setShareUrl(data.url);
+        setEmailInput(proposal?.input_data?.client_email || "");
+      }
     } catch {
       alert("Error al generar el enlace.");
     } finally {
       setSharing(false);
+    }
+  }
+
+  async function handleSendEmail() {
+    if (!shareUrl || !emailInput.trim()) return;
+    setSendingEmail(true);
+    try {
+      await fetch(`/api/proposals/${id}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ send_email: true, client_email: emailInput.trim() }),
+      });
+      setEmailSent(true);
+      setTimeout(() => setEmailSent(false), 3000);
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -591,23 +617,54 @@ export default function ProposalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
           <div className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-md p-8 space-y-5">
             <div>
-              <h2 className="font-heading text-lg font-bold text-secondary">Enlace de propuesta</h2>
-              <p className="text-sm text-muted mt-1">Comparte este enlace con tu cliente. Recibirás una notificación cuando la vea o la apruebe.</p>
+              <h2 className="font-heading text-lg font-bold text-secondary">Compartir propuesta</h2>
+              <p className="text-sm text-muted mt-1">Envía la propuesta por email o comparte el enlace directamente.</p>
             </div>
+
+            {/* Send by email */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Enviar por email al cliente</label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="email@cliente.com"
+                  className="flex-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+                <button
+                  onClick={handleSendEmail}
+                  disabled={sendingEmail || !emailInput.trim()}
+                  className="px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex-shrink-0"
+                >
+                  {emailSent ? "Enviado ✓" : sendingEmail ? "..." : "Enviar"}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted">o copia el enlace</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Copy link */}
             <div className="flex gap-2">
               <input readOnly value={shareUrl}
                 className="flex-1 px-3 py-2.5 rounded-lg border border-border bg-background text-xs text-secondary font-mono" />
               <button onClick={copyLink}
-                className="px-4 py-2.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0">
+                className="px-4 py-2.5 border border-border text-secondary text-xs font-medium rounded-lg hover:border-gray-400 transition-colors flex-shrink-0">
                 {copied ? "Copiado ✓" : "Copiar"}
               </button>
             </div>
+
             <div className="flex gap-2 text-xs text-muted bg-background border border-border rounded-lg px-4 py-3">
               <svg className="w-4 h-4 flex-shrink-0 text-primary mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>El estado se actualiza automáticamente cuando tu cliente abre o aprueba la propuesta.</span>
+              <span>Recibirás una notificación cuando tu cliente abra o apruebe la propuesta.</span>
             </div>
+
             <button onClick={() => setShareUrl(null)}
               className="w-full py-2.5 border border-border rounded-full text-sm text-secondary hover:border-gray-400 transition-colors">
               Cerrar

@@ -24,6 +24,9 @@ export default function ContractPage() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendEmail, setSendEmail] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -50,6 +53,24 @@ export default function ContractPage() {
 
   function handlePrint() {
     window.print();
+  }
+
+  async function handleSendEmail() {
+    if (!contract) return;
+    const to = sendEmail.trim() || contract.client_email;
+    if (!to) return;
+    setSending(true);
+    try {
+      await fetch(`/api/contracts/${id}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipient_email: to }),
+      });
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+    } finally {
+      setSending(false);
+    }
   }
 
   if (loading) {
@@ -99,6 +120,36 @@ export default function ContractPage() {
                 </>
               )}
             </button>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="email"
+                value={sendEmail}
+                onChange={(e) => setSendEmail(e.target.value)}
+                placeholder={contract.client_email || "Email del cliente"}
+                className="text-sm border border-border rounded-full px-3 h-9 w-44 text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+              <button
+                onClick={handleSendEmail}
+                disabled={sending || (!sendEmail.trim() && !contract.client_email)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium border border-border text-secondary px-3 py-2 h-9 rounded-full hover:border-gray-400 transition-colors disabled:opacity-40"
+              >
+                {sent ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 text-accent" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2 7l4 4 6-6" />
+                    </svg>
+                    Enviado
+                  </>
+                ) : sending ? "..." : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 14 14" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M1 1l12 6-12 6V8.5l8-2.5-8-2.5V1z" />
+                    </svg>
+                    Enviar
+                  </>
+                )}
+              </button>
+            </div>
             <button
               onClick={handlePrint}
               className="inline-flex items-center gap-1.5 text-sm font-medium bg-primary text-white px-4 py-2 h-9 rounded-full hover:bg-blue-700 transition-colors"
